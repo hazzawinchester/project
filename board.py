@@ -1,7 +1,7 @@
 import tkinter as tk
 import numpy as np
-import pieces as piece
-import Drag_handler
+import pieces as p
+import Drag_handler as dh
 
 #rows ={7:"a",6:"b",5:"c",4:"d",3:"e",2:"f",1:"g",0:"h"}
 pieces = {'p':"♟︎",'n':"♞",'b':"♝",'r':"♜",'q':"♛",'k':"♚", "P":"♙", "N":"♘", "B":"♗", "R":"♖", "Q":"♕", "K":"♔"}
@@ -16,7 +16,7 @@ class chessboard(tk.Frame):
 
         self.move_start = None
 
-        self.dnd = Drag_handler()
+        self.dnd = dh.Drag_handler()
 
         self.board = np.zeros((8,8),dtype=str)
         self.make_array_of_pieces(FEN)
@@ -30,7 +30,7 @@ class chessboard(tk.Frame):
     def create_widgets(self):
         for row in range(8):
             for col in range(8):
-                piece = Piece(self,[row,col], bg=("white" if (row+col)%2==0 else "gray") , text=f"{self.board[row][col]}", font=("Arial",40), borderwidth=0)
+                piece = p.Piece(self,[row,col], bg=("white" if (row+col)%2==0 else "gray") , text=f"{self.board[row][col]}", font=("Arial",40), borderwidth=0)
                 piece.grid(row=row, column=col)
                 self.dnd.add_dragable(piece)
 
