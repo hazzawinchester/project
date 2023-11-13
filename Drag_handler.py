@@ -1,4 +1,5 @@
 import tkinter as tk
+
 class Drag_handler():
     def add_dragable(self, widget):
         widget.bind("<ButtonPress-1>", self.on_start)
@@ -8,24 +9,23 @@ class Drag_handler():
     def on_start(self, event):
         # you could use this method to create a floating window
         # that represents what is being dragged.
-        print(event.x,event.y,event.widget.master.x)
-        #print(event.x_root,event.y_root)
-        print("CLICEKD")
+        # print(event.x,event.y)
+        self.start_x,self.start_y = (event.y_root-event.widget.master.winfo_rooty())//100,(event.x_root-event.widget.master.winfo_rootx())//100
         pass
 
-    def on_drag(self, event,widget=None):
+    def on_drag(self, event):
         #x,y = event.widget.winfo_pointerxy()
-        x,y = event.x_root,event.y_root
-        print(x,y)
-        event.widget.place(x=x,y=y)
+        event.widget.place(x=(event.x_root-event.widget.master.winfo_rootx()),y=(event.y_root-event.widget.master.winfo_rooty()),anchor="center")
         pass
 
     def on_drop(self, event):
         # find the widget under the cursor
-        x,y = event.widget.winfo_pointerxy()
-        x,y = event.x,event.y
-        target = event.widget.winfo_containing(x,y)
-        try:
-            target.configure(image=event.widget.cget("image"))
-        except:
-            pass
+        x,y = (event.y_root-event.widget.master.winfo_rooty())//100,(event.x_root-event.widget.master.winfo_rootx())//100
+        if x != self.start_x or y!= self.start_y:
+            event.widget.master.grid_slaves(x,y)[0].destroy()
+            event.widget.grid(row=x,column=y)
+
+            temp =tk.Label(event.widget.master,text='', font=("Arial",50), borderwidth=0)
+            temp.grid(row=self.start_x,column=self.start_y)
+        else:
+            event.widget.grid(row=self.start_x,column=self.start_y)
