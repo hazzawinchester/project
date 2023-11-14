@@ -30,7 +30,7 @@ class chessboard(tk.Frame):
     def create_widgets(self):
         for row in range(8):
             for col in range(8):
-                piece = p.Piece(self,[row,col], bg=("white" if (row+col)%2==0 else "gray") , text=f"{self.board[row][col]}", font=("Arial",40), borderwidth=0)
+                piece = p.Piece(self,[row,col], bg='black' , text=f"{self.board[row][col]}", font=("Arial",50), borderwidth=0)
                 piece.grid(row=row, column=col)
                 self.dnd.add_dragable(piece)
 
@@ -41,7 +41,24 @@ class chessboard(tk.Frame):
                 squares.grid(row=row, column=col)
                 #squares.bind("<Button-1>", lambda event, r=row, c=col: self.move_piece(r, c))
     
-    def move_piece(self,r,c):
+    def make_array_of_pieces(self,FEN):
+        temp = FEN.split("/")
+        for i in range(len(temp)):
+            if temp[i].isalpha():
+                self.board[i] = np.array([pieces[a] for a in temp[i]])
+            elif not(temp[i].isnumeric()):
+                row = []
+                for a in temp[i]:
+                    if a.isalpha():
+                        row.append(pieces[a])
+                    else:
+                        for z in range(int(a)):
+                            row.append('')
+                self.board[i] = np.array(row)
+
+
+
+""" def move_piece(self,r,c):
         print(self.grid_slaves(r,c)[0].position,r*8+c+1)
         if self.move_start == None:
             self.move_start = [r,c]
@@ -60,18 +77,4 @@ class chessboard(tk.Frame):
 
 
             self.move_start = None
-
-    def make_array_of_pieces(self,FEN):
-        temp = FEN.split("/")
-        for i in range(len(temp)):
-            if temp[i].isalpha():
-                self.board[i] = np.array([pieces[a] for a in temp[i]])
-            elif not(temp[i].isnumeric()):
-                row = []
-                for a in temp[i]:
-                    if a.isalpha():
-                        row.append(pieces[a])
-                    else:
-                        for z in range(int(a)):
-                            row.append('')
-                self.board[i] = np.array(row)
+ """
