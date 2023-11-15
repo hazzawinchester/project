@@ -1,5 +1,7 @@
 import tkinter as tk
 
+#drag handler adds the drag functionality to all pieces by giving them these the following methods
+#this allows pieces to be added dynamicaly whenever needed
 class Drag_handler():
     def add_dragable(self, widget):
         widget.bind("<ButtonPress-1>", self.on_start)
@@ -7,25 +9,24 @@ class Drag_handler():
         widget.bind("<ButtonRelease-1>", self.on_drop)
 
     def on_start(self, event):
-        # you could use this method to create a floating window
-        # that represents what is being dragged.
-        # print(event.x,event.y)
+        #documents the starting point of the piece so it can be returned if the move is invalid
         self.start_x,self.start_y = (event.y_root-event.widget.master.winfo_rooty())//100,(event.x_root-event.widget.master.winfo_rootx())//100
         pass
 
     def on_drag(self, event):
-        #x,y = event.widget.winfo_pointerxy()
+        #makes the piece follow beneath the position of the mouse on the screen by redrawing every time it moves
         event.widget.place(x=(event.x_root-event.widget.master.winfo_rootx()),y=(event.y_root-event.widget.master.winfo_rooty()),anchor="center")
+        event.widget.lift()
         pass
 
     def on_drop(self, event):
-        # find the widget under the cursor
+        #locks the widget into the nearst gird space or retruns it to the starting point if it is invalid
         x,y = (event.y_root-event.widget.master.winfo_rooty())//100,(event.x_root-event.widget.master.winfo_rootx())//100
-        if x != self.start_x or y!= self.start_y:
+        if (x != self.start_x or y!= self.start_y )and x<8 and y<8 and x>=0 and y>=0 and (event.widget.colour != event.widget.master.grid_slaves(x,y)[0].colour):
             event.widget.master.grid_slaves(x,y)[0].destroy()
             event.widget.grid(row=x,column=y)
 
-            temp =tk.Label(event.widget.master,text='', font=("Arial",50), borderwidth=0)
+            temp =tk.Label(event.widget.master, borderwidth=0,bg="white" if (self.start_x+self.start_y)%2==0 else "gray")
             temp.grid(row=self.start_x,column=self.start_y)
         else:
             event.widget.grid(row=self.start_x,column=self.start_y)
