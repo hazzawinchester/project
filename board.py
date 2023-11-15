@@ -4,17 +4,15 @@ import pieces as p
 import Drag_handler as dh
 
 #rows ={7:"a",6:"b",5:"c",4:"d",3:"e",2:"f",1:"g",0:"h"}
-pieces = {'p':"♟︎",'n':"♞",'b':"♝",'r':"♜",'q':"♛",'k':"♚", "P":"♙", "N":"♘", "B":"♗", "R":"♖", "Q":"♕", "K":"♔"}
-
-
+pieces = {'p':"♟",'n':"♞",'b':"♝",'r':"♜",'q':"♛",'k':"♚", "P":"♙", "N":"♘", "B":"♗", "R":"♖", "Q":"♕", "K":"♔"}
 
 class chessboard(tk.Frame):
-    def __init__(self, master=None,FEN=None):
+    def __init__(self, master=None,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",piece_type="classic"):
         super().__init__(master)
         self.master = master
         self.grid()
-
-        self.move_start = None
+        self.move_start=None
+        self.piece_type = piece_type
 
         self.dnd = dh.Drag_handler()
 
@@ -30,7 +28,7 @@ class chessboard(tk.Frame):
     def create_widgets(self):
         for row in range(8):
             for col in range(8):
-                piece = p.Piece(self,[row,col], bg='black' , text=f"{self.board[row][col]}", font=("Arial",50), borderwidth=0)
+                piece = p.Piece(self,self.board[row][col],row,col,self.piece_type)
                 piece.grid(row=row, column=col)
                 self.dnd.add_dragable(piece)
 
@@ -39,7 +37,6 @@ class chessboard(tk.Frame):
             for col in range(8):
                 squares = tk.Frame(self, bg="white" if (row+col)%2==0 else "gray" ,width=100, height=100, borderwidth=0)
                 squares.grid(row=row, column=col)
-                #squares.bind("<Button-1>", lambda event, r=row, c=col: self.move_piece(r, c))
     
     def make_array_of_pieces(self,FEN):
         temp = FEN.split("/")
