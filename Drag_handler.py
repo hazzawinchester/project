@@ -1,4 +1,5 @@
 import tkinter as tk
+import pieces as p
 
 #drag handler adds the drag functionality to all pieces by giving them these the following methods
 #this allows pieces to be added dynamicaly whenever needed
@@ -26,7 +27,7 @@ class Drag_handler():
             event.widget.master.grid_slaves(x,y)[0].destroy()
             event.widget.grid(row=x,column=y)
 
-            temp =tk.Label(event.widget.master, borderwidth=0,bg="white" if (self.start_x+self.start_y)%2==0 else "gray")
+            temp = p.Piece(event.widget.master,piece='',row=self.start_x,col=self.start_y,piece_type='')
             temp.grid(row=self.start_x,column=self.start_y)
         else:
             event.widget.grid(row=self.start_x,column=self.start_y)
