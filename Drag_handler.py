@@ -1,6 +1,10 @@
 import tkinter as tk
 import pieces as p
 
+pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '♚': 'k', '♙': 'P', '♘': 'N', '♗': 'B', '♖': 'R', '♕': 'Q', '♔': 'K'}
+
+
+
 #drag handler adds the drag functionality to all pieces by giving them these the following methods
 #this allows pieces to be added dynamicaly whenever needed
 class Drag_handler():
@@ -28,6 +32,21 @@ class Drag_handler():
             event.widget.grid(row=x,column=y)
 
             temp = p.Piece(event.widget.master,piece='',row=self.start_x,col=self.start_y,piece_type='')
+            event.widget.master.board[x,y] = event.widget
+            event.widget.master.board[self.start_x,self.start_y] = temp
+            event.widget.master.ascii_board[x,y] = event.widget.ascii
+            event.widget.master.ascii_board[self.start_x,self.start_y] = temp.ascii
             temp.grid(row=self.start_x,column=self.start_y)
         else:
             event.widget.grid(row=self.start_x,column=self.start_y)
+
+        w =0
+        bl =0
+        for a in range(8):
+            for b in range(8):
+                if event.widget.master.board[a,b].colour == "w":
+                    w+= event.widget.master.board[a,b].value
+                elif event.widget.master.board[a,b].colour == "b":
+                    bl+= event.widget.master.board[a,b].value
+        
+        print("white:",w,"black:",bl)
