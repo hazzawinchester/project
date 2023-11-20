@@ -35,7 +35,7 @@ class chessboard(tk.Frame):
         self.create_widgets()
 
         #creates a 2D array of all piece objects in their respective positions
-        self.board  = np.array([[self.grid_slaves()[8*a+i] for i in range(8)] for a in range(8)])
+        self.board  = np.flipud(np.array([np.flipud([self.grid_slaves()[8*a+i] for i in range(8)]) for a in range(8)]))
 
     def __str__(self): # if chessboard is printed in an emergancy it will output the ascii reprpresntation of the board
         return f"{self.ascii_board}"
@@ -64,6 +64,27 @@ class chessboard(tk.Frame):
         temp = FEN.split("/")
         for i in range(len(temp)):
             if temp[i].isalpha():
+                self.ascii_board[i] = np.array([a for a in temp[i]])
+            elif not(temp[i].isnumeric()):
+                row = []
+                for a in temp[i]:
+                    if a.isalpha():
+                        row.append(a)
+                    else:
+                        for z in range(int(a)):
+                            row.append('')
+                self.ascii_board[i] = np.array(row)
+
+    
+    
+    
+    
+"""     
+    with ascii symbols
+    def make_array_of_pieces(self,FEN):
+        temp = FEN.split("/")
+        for i in range(len(temp)):
+            if temp[i].isalpha():
                 self.ascii_board[i] = np.array([pieces[a] for a in temp[i]])
             elif not(temp[i].isnumeric()):
                 row = []
@@ -73,5 +94,5 @@ class chessboard(tk.Frame):
                     else:
                         for z in range(int(a)):
                             row.append('')
-                self.ascii_board[i] = np.array(row)
+                self.ascii_board[i] = np.array(row) """
 

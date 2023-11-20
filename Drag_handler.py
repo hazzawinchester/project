@@ -28,25 +28,30 @@ class Drag_handler():
         #locks the widget into the nearst gird space or retruns it to the starting point if it is invalid
         x,y = (event.y_root-event.widget.master.winfo_rooty())//100,(event.x_root-event.widget.master.winfo_rootx())//100
         if (x != self.start_x or y!= self.start_y )and x<8 and y<8 and x>=0 and y>=0 and (event.widget.colour != event.widget.master.grid_slaves(x,y)[0].colour):
+
             event.widget.master.grid_slaves(x,y)[0].destroy()
             event.widget.grid(row=x,column=y)
 
+
+            # .baord[colum,row]
             temp = p.Piece(event.widget.master,piece='',row=self.start_x,col=self.start_y,piece_type='')
             event.widget.master.board[x,y] = event.widget
             event.widget.master.board[self.start_x,self.start_y] = temp
             event.widget.master.ascii_board[x,y] = event.widget.ascii
             event.widget.master.ascii_board[self.start_x,self.start_y] = temp.ascii
             temp.grid(row=self.start_x,column=self.start_y)
+
+            self.get_material_diff(event)
         else:
             event.widget.grid(row=self.start_x,column=self.start_y)
 
-        w =0
-        bl =0
+    def get_material_diff(self,event):
+        w = 0
+        bl = 0
         for a in range(8):
             for b in range(8):
-                if event.widget.master.board[a,b].colour == "w":
-                    w+= event.widget.master.board[a,b].value
-                elif event.widget.master.board[a,b].colour == "b":
-                    bl+= event.widget.master.board[a,b].value
-        
-        print("white:",w,"black:",bl)
+                if event.widget.master.board[a][b].colour == "w":
+                    w += event.widget.master.board[a][b].value
+                elif event.widget.master.board[a][b].colour == "b":
+                    bl+= event.widget.master.board[a][b].value
+        print("+"+ str((w-bl)//100)) if (w-bl) >= 0 else print("-"+ str((bl-w)//100))

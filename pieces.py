@@ -17,19 +17,19 @@ class Piece(tk.Label):
         # '' is used to hold an empty sqaure
         if piece != '':
             #checks if the pieces is white (.isupper() will be True)
-            if pieces_revesed[piece].isupper():
+            if piece.isupper():
                 # fetches the white image corelating to the piece
-                self.img = Image.open(f"Pieces/{piece_type}/{piece_type}w{pieces_revesed[piece].lower()}.{file_type[piece_type]}")
+                self.img = Image.open(f"Pieces/{piece_type}/{piece_type}w{piece.lower()}.{file_type[piece_type]}")
+                self.colour ="w"
             else: 
                 #fetches the black image corelating to the piece
-                self.img = Image.open(f"Pieces/{piece_type}/{piece_type}b{pieces_revesed[piece]}.{file_type[piece_type]}")
+                self.img = Image.open(f"Pieces/{piece_type}/{piece_type}b{piece}.{file_type[piece_type]}")
+                self.colour = "b"
                 
             #sets the image to a standard size and applys it to the object    
             self.img = self.img.resize((90, 90))
             self.img = ImageTk.PhotoImage(self.img)
             super().__init__(master,borderwidth=0,image=self.img,bg="gray")
-
-            self.colour = "w" if pieces_revesed[piece].isupper() else "b"
         else:
             #used for empty squares so operations can be generalised to be performed on tk.lable objects
             super().__init__(master,borderwidth=0,bg="white" if (row+col)%2==0 else "gray")
@@ -39,7 +39,10 @@ class Piece(tk.Label):
         self.master=master
         self.pos = [row,col]
         self.ascii = piece
-        self.value = values[pieces_revesed[piece].lower() if piece != '' else '']
+        self.value = values[piece.lower() if piece != '' else '']
+
+    def __str__(self):
+        return self.ascii
     
     def update_moves(self,move):
         raise NotImplementedError
