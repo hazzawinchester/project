@@ -1,5 +1,7 @@
 import tkinter as tk
-import pieces as p
+from Piece_classes import pieces as p
+from Piece_classes import Pawn,Bishop,Knight,Rook,Queen,King
+import numpy as np
 
 pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '♚': 'k', '♙': 'P', '♘': 'N', '♗': 'B', '♖': 'R', '♕': 'Q', '♔': 'K'}
 
@@ -15,35 +17,41 @@ class Drag_handler():
 
     def on_start(self, event):
         #documents the starting point of the piece so it can be returned if the move is invalid
-        self.start_x,self.start_y = (event.y_root-event.widget.master.winfo_rooty())//100,(event.x_root-event.widget.master.winfo_rootx())//100
-        pass
+        self.start_row,self.start_col = (event.y_root-event.widget.master.winfo_rooty())//100,(event.x_root-event.widget.master.winfo_rootx())//100
+        event.widget.update_legal_moves()
 
     def on_drag(self, event):
         #makes the piece follow beneath the position of the mouse on the screen by redrawing every time it moves
         event.widget.place(x=(event.x_root-event.widget.master.winfo_rootx()),y=(event.y_root-event.widget.master.winfo_rooty()),anchor="center")
         event.widget.lift()
-        pass
 
     def on_drop(self, event):
         #locks the widget into the nearst gird space or retruns it to the starting point if it is invalid
-        x,y = (event.y_root-event.widget.master.winfo_rooty())//100,(event.x_root-event.widget.master.winfo_rootx())//100
-        if (x != self.start_x or y!= self.start_y )and x<8 and y<8 and x>=0 and y>=0 and (event.widget.colour != event.widget.master.grid_slaves(x,y)[0].colour):
+        row,col = (event.y_root-event.widget.master.winfo_rooty())//100,(event.x_root-event.widget.master.winfo_rootx())//100
+        #if (row != self.start_row or col!= self.start_col )and row<8 and col<8 and row>=0 and col>=0 and (event.widget.colour != event.widget.master.grid_slaves(row,col)[0].colour):
+        if (event.widget.legal_moves == np.array([row,col])).all(1).any():
 
-            event.widget.master.grid_slaves(x,y)[0].destroy()
-            event.widget.grid(row=x,column=y)
+            event.widget.master.grid_slaves(row,col)[0].destroy()
+            event.widget.grid(row=row,column=col)
 
 
             # .baord[colum,row]
-            temp = p.Piece(event.widget.master,piece='',row=self.start_x,col=self.start_y,piece_type='')
-            event.widget.master.board[x,y] = event.widget
-            event.widget.master.board[self.start_x,self.start_y] = temp
-            event.widget.master.ascii_board[x,y] = event.widget.ascii
-            event.widget.master.ascii_board[self.start_x,self.start_y] = temp.ascii
-            temp.grid(row=self.start_x,column=self.start_y)
+            temp = p.Piece(event.widget.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
+            event.widget.master.board[row,col] = event.widget
+            event.widget.master.board[self.start_row,self.start_col] = temp
+            event.widget.master.ascii_board[row,col] = event.widget.ascii
+            event.widget.master.ascii_board[self.start_row,self.start_col] = temp.ascii
+            temp.grid(row=self.start_row,column=self.start_col)
+
+            event.widget.pos =[row,col]
 
             self.get_material_diff(event)
+            #print(event.widget)
+            #event.widget.update_moves()
+
+            event.widget.has_moved=True
         else:
-            event.widget.grid(row=self.start_x,column=self.start_y)
+            event.widget.grid(row=self.start_row,column=self.start_col)
 
     def get_material_diff(self,event):
         w = 0

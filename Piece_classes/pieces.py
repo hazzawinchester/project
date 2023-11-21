@@ -19,11 +19,11 @@ class Piece(tk.Label):
             #checks if the pieces is white (.isupper() will be True)
             if piece.isupper():
                 # fetches the white image corelating to the piece
-                self.img = Image.open(f"Pieces/{piece_type}/{piece_type}w{piece.lower()}.{file_type[piece_type]}")
+                self.img = Image.open(f"Pieces_img/{piece_type}/{piece_type}w{piece.lower()}.{file_type[piece_type]}")
                 self.colour ="w"
             else: 
                 #fetches the black image corelating to the piece
-                self.img = Image.open(f"Pieces/{piece_type}/{piece_type}b{piece}.{file_type[piece_type]}")
+                self.img = Image.open(f"Pieces_img/{piece_type}/{piece_type}b{piece}.{file_type[piece_type]}")
                 self.colour = "b"
                 
             #sets the image to a standard size and applys it to the object    
@@ -40,11 +40,13 @@ class Piece(tk.Label):
         self.pos = [row,col]
         self.ascii = piece
         self.value = values[piece.lower() if piece != '' else '']
+        self.has_moved = False
 
     def __str__(self):
-        return self.ascii
+        return f"{self.ascii},{self.pos},{self.colour}"
     
-    def update_moves(self,move):
+    def update_moves(self):
+        
         raise NotImplementedError
 
 

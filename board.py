@@ -1,7 +1,10 @@
 import tkinter as tk
 import numpy as np
-import pieces as p
+from Piece_classes import pieces as p
 import Drag_handler as dh
+from Piece_classes import Pawn,Bishop,Knight,Rook,Queen,King
+
+
 
 #rows ={7:"a",6:"b",5:"c",4:"d",3:"e",2:"f",1:"g",0:"h"}
 # allows to translate between the ascii and aplhabetical represntation of each piece
@@ -45,7 +48,21 @@ class chessboard(tk.Frame):
     def create_widgets(self):
         for row in range(8):
             for col in range(8):
-                piece = p.Piece(self,self.ascii_board[row][col],row,col,self.piece_type)
+                temp = self.ascii_board[row][col]
+                if temp == '':
+                    piece = p.Piece(self,temp,row,col,self.piece_type)
+                elif temp.lower() == "p":
+                    piece = Pawn.Pawn(self,temp,row,col,self.piece_type)
+                elif temp.lower() == "n":
+                    piece = Knight.Knight(self,temp,row,col,self.piece_type)                    
+                elif temp.lower() == "b":
+                    piece = Bishop.Bishop(self,temp,row,col,self.piece_type)   
+                elif temp.lower() == "r":
+                    piece = Rook.Rook(self,temp,row,col,self.piece_type)       
+                elif temp.lower() == "q":
+                    piece = Queen.Queen(self,temp,row,col,self.piece_type)  
+                elif temp.lower() == "k":
+                    piece = Queen.Queen(self,temp,row,col,self.piece_type)                                                            
                 piece.grid(row=row, column=col)
                 self.dnd.add_dragable(piece)
 
@@ -77,22 +94,5 @@ class chessboard(tk.Frame):
 
     
     
-    
-    
-"""     
-    with ascii symbols
-    def make_array_of_pieces(self,FEN):
-        temp = FEN.split("/")
-        for i in range(len(temp)):
-            if temp[i].isalpha():
-                self.ascii_board[i] = np.array([pieces[a] for a in temp[i]])
-            elif not(temp[i].isnumeric()):
-                row = []
-                for a in temp[i]:
-                    if a.isalpha():
-                        row.append(pieces[a])
-                    else:
-                        for z in range(int(a)):
-                            row.append('')
-                self.ascii_board[i] = np.array(row) """
+
 

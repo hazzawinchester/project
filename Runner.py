@@ -2,14 +2,14 @@ import tkinter as tk
 from tkinter import messagebox
 import numpy as np  
 import board
-import pieces as p
+from Piece_classes import pieces
 import time
 
 
 # runner that collects all GUI elements to assembel them into the software
 s = time.time()
 
-def create_board(layout="rppkbppr/pppqpppp/8/8/8/8/PPPPPPPP/R1BKQB1R",piece_type="classic"):
+def create_board(layout="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",piece_type="classic"):
     global chessboard
     # create chessboard instance
     chessboard = board.chessboard(window,layout,piece_type)
@@ -23,7 +23,7 @@ window = tk.Tk()
 window.title("Chess")
 window.geometry("800x800")
 
-create_board(piece_type="periodic")
+create_board(piece_type="periodic") # 0.3 per iteration
 
 
 print(time.time()-s)
