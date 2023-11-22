@@ -17,28 +17,24 @@ class chessboard(tk.Frame):
     def __init__(self, master=None,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",piece_type="classic"):
         super().__init__(master)
 
-        #makes the instance a grid so the board can be placed inside
         self.grid()
 
         self.master = master
         self.move_start=None
         self.piece_type = piece_type
+        self.piece_list = []
 
-        # creates a drag handler which is used to add the drag funcionality to a piece
         self.dnd = dh.Drag_handler()
 
-        #creates an 2D array of the current board state which can be used for testing and output if no image is availbe for the piece
         self.ascii_board = np.zeros((8,8),dtype=str)
         self.make_array_of_pieces(FEN)
 
-        #creates the background coloured squares of the chessboard
         self.board_background()
 
-        # creates all of the pieces based off the ascii represntation of the board
         self.create_widgets()
 
-        #creates a 2D array of all piece objects in their respective positions
-        self.board  = np.flipud(np.array([np.flipud([self.grid_slaves()[8*a+i] for i in range(8)]) for a in range(8)]))
+        self.board  = np.array([[self.grid_slaves()[-(65+(8*a+i))] for i in range(8)] for a in range(8)])
+        self.set_all_piece_moves()
 
     def __str__(self): # if chessboard is printed in an emergancy it will output the ascii reprpresntation of the board
         return f"{self.ascii_board}"
@@ -51,20 +47,28 @@ class chessboard(tk.Frame):
                 temp = self.ascii_board[row][col]
                 if temp == '':
                     piece = p.Piece(self,temp,row,col,self.piece_type)
-                elif temp.lower() == "p":
-                    piece = Pawn.Pawn(self,temp,row,col,self.piece_type)
-                elif temp.lower() == "n":
-                    piece = Knight.Knight(self,temp,row,col,self.piece_type)                    
-                elif temp.lower() == "b":
-                    piece = Bishop.Bishop(self,temp,row,col,self.piece_type)   
-                elif temp.lower() == "r":
-                    piece = Rook.Rook(self,temp,row,col,self.piece_type)       
-                elif temp.lower() == "q":
-                    piece = Queen.Queen(self,temp,row,col,self.piece_type)  
-                elif temp.lower() == "k":
-                    piece = Queen.Queen(self,temp,row,col,self.piece_type)                                                            
+                else:
+                    if temp.lower() == "p":
+                        piece = Pawn.Pawn(self,temp,row,col,self.piece_type)
+                    elif temp.lower() == "n":
+                        piece = Knight.Knight(self,temp,row,col,self.piece_type)                    
+                    elif temp.lower() == "b":
+                        piece = Bishop.Bishop(self,temp,row,col,self.piece_type)   
+                    elif temp.lower() == "r":
+                        piece = Rook.Rook(self,temp,row,col,self.piece_type)       
+                    elif temp.lower() == "q":
+                        piece = Queen.Queen(self,temp,row,col,self.piece_type)  
+                    elif temp.lower() == "k":
+                        piece = Queen.Queen(self,temp,row,col,self.piece_type)   
+                    self.piece_list = np.append(self.piece_list,piece)
+                                                                             
                 piece.grid(row=row, column=col)
                 self.dnd.add_dragable(piece)
+    
+    def set_all_piece_moves(self):
+        for i in self.piece_list:
+            i.update_legal_moves()
+            print(i.ascii,i.legal_moves)
 
     #creates a 8*8 grid of coloured squares to serve as the board being played on
     def board_background(self,white="white",black="gray"):

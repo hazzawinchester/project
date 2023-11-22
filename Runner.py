@@ -26,7 +26,7 @@ window.geometry("800x800")
 create_board(piece_type="periodic") # 0.3 per iteration
 
 
-print(time.time()-s)
+#print(time.time()-s)
 # Loop to run the window with all of its widgets
 window.mainloop()
 
