@@ -37,7 +37,6 @@ class Rook(parent.Piece):
                 else:
                     down = True
             a+=1
-
         
         
     def update_ghost_moves(self):

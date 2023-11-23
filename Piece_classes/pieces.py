@@ -47,7 +47,7 @@ class Piece(tk.Label):
         return f"{self.ascii},{self.pos},{self.colour}"
     
     def update_legal_moves(self):
-        raise NotImplementedError
+        pass
     def update_ghost_moves(self):
         pass
 
