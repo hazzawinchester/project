@@ -9,31 +9,37 @@ class Knight(parent.Piece):
 #        self.legal_moves_array = np.zeros((8,8),dtype=str)
         row,col = self.pos[0],self.pos[1] 
 
-        if col>=2 and row >=1 and self.master.board[row-1,col-2].colour != self.colour:
-            self.legal_moves = np.append(self.legal_moves,[[(row-1),(col-2)]], axis=0)
-#            self.legal_moves_array[row-1,col-2] = self.master.ascii_board[row-1,col-2] if self.master.board[row-1,col-2].colour != None else "x"
-        if col>=2 and row <=6 and self.master.board[row+1,col-2].colour != self.colour:
-            self.legal_moves = np.append(self.legal_moves,[[(row+1),(col-2)]], axis=0)
-#            self.legal_moves_array[row+1,col-2] = self.master.ascii_board[row+1,col-2] if self.master.board[row+1,col-2].colour != None else "x"    
+        up1 = row-1
+        up2 = row-2
+        down1 = row+1
+        down2 = row+2
+        left1 = col-1
+        left2 = col -2
+        right1 = col+1
+        right2 = col+2
+
+        if col >= 2:
+            if row >=1 and self.master.board[up1,left2].colour != self.colour:
+                self.legal_moves = np.append(self.legal_moves,[[(up1),(left2)]], axis=0)
+            if row <=6 and self.master.board[down1,left2].colour != self.colour:
+                self.legal_moves = np.append(self.legal_moves,[[(down1),(left2)]], axis=0)
         
-        if col>=1 and row >=2 and self.master.board[row-2,col-1].colour != self.colour:
-            self.legal_moves = np.append(self.legal_moves,[[(row-2),(col-1)]], axis=0)
-#            self.legal_moves_array[row-2,col-1] = self.master.ascii_board[row-2,col-1] if self.master.board[row-2,col-1].colour != None else "x"
-        if col>=1 and row <=5 and self.master.board[row+2,col-1].colour != self.colour:
-            self.legal_moves = np.append(self.legal_moves,[[(row+2),(col-1)]], axis=0)
-#            self.legal_moves_array[row+2,col-1] = self.master.ascii_board[row+2,col-1] if self.master.board[row+2,col-1].colour != None else "x"
+        if col >=1:
+            if row >=2 and self.master.board[up2,left1].colour != self.colour:
+                self.legal_moves = np.append(self.legal_moves,[[(up2),(left1)]], axis=0)
+            if row <=5 and self.master.board[down2,left1].colour != self.colour:
+                self.legal_moves = np.append(self.legal_moves,[[(down2),(left1)]], axis=0)
 
 
-        if col<=5 and row >=1 and self.master.board[row-1,col+2].colour != self.colour:
-            self.legal_moves = np.append(self.legal_moves,[[(row-1),(col+2)]], axis=0)
-#            self.legal_moves_array[row-1,col+2] = self.master.ascii_board[row-1,col+2] if self.master.board[row-1,col+2].colour != None else "x"
-        if col<=5 and row <=6 and self.master.board[row+1,col+2].colour != self.colour:
-            self.legal_moves = np.append(self.legal_moves,[[(row+1),(col+2)]], axis=0)
-#           self.legal_moves_array[row+1,col+2] = self.master.ascii_board[row+1,col+2] if self.master.board[row+1,col+2].colour != None else "x"
-        
-        if col <=6 and row >=2 and self.master.board[row-2,col+1].colour != self.colour:
-            self.legal_moves = np.append(self.legal_moves,[[(row-2),(col+1)]], axis=0)
-#            self.legal_moves_array[row-2,col+1] = self.master.ascii_board[row-2,col+1] if self.master.board[row-2,col+1].colour != None else "x"
-        if col <=6 and row <=5 and self.master.board[row+2,col+1].colour != self.colour:
-            self.legal_moves = np.append(self.legal_moves,[[(row+2),(col+1)]], axis=0)
-#            self.legal_moves_array[row+2,col+1] = self.master.ascii_board[row+2,col+1] if self.master.board[row+2,col+1].colour != None else "x"
+        if col <= 5:
+            if row >=1 and self.master.board[up1,right2].colour != self.colour:
+                self.legal_moves = np.append(self.legal_moves,[[(up1),(right2)]], axis=0)
+            if row <=6 and self.master.board[down1,right2].colour != self.colour:
+                self.legal_moves = np.append(self.legal_moves,[[(down1),(right2)]], axis=0)
+            
+        if col <= 6:
+            if row >=2 and self.master.board[up2,right1].colour != self.colour:
+                self.legal_moves = np.append(self.legal_moves,[[(up2),(right1)]], axis=0)
+            if row <=5 and self.master.board[down2,right1].colour != self.colour:
+                self.legal_moves = np.append(self.legal_moves,[[(down2),(right1)]], axis=0)
+

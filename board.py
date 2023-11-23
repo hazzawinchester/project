@@ -68,16 +68,12 @@ class chessboard(tk.Frame):
     def set_all_piece_moves(self):
         for i in self.piece_list:
             i.update_legal_moves()
-            print(i.ascii,i.legal_moves)
 
     #creates a 8*8 grid of coloured squares to serve as the board being played on
     def board_background(self,white="white",black="gray"):
         for row in range(8):
             for col in range(8):
-                #for each sqaure on the 8*8 board creates a coloured frame
                 squares = tk.Frame(self, bg=white if (row+col)%2==0 else black ,width=100, height=100, borderwidth=0)
-
-                # places each square in its position in the grid of chessboard
                 squares.grid(row=row, column=col)
     
     #translates the FEN string into a 2D array of the pieces in ther respective positions (black at the top/start of the array)

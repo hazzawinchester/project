@@ -7,11 +7,46 @@ class Bishop(parent.Piece):
     
     def update_legal_moves(self):
         self.legal_moves = [[100,100]]
-#        self.legal_moves_array = np.zeros((8,8),dtype=str)
         row,col = self.pos[0],self.pos[1]
         left_up,left_down,right_up,right_down,a = False,False,False,False,1
 
         while left_up==False or left_down==False or right_up==False or right_down==False:
+            this_left = col-a
+            this_right = col+a
+            this_up = row-a
+            this_down = row+a
+
+            if this_left >=0:
+                if this_up >=0:
+                    left_up = self.check_square(this_up,this_left,left_up)
+                else:
+                    left_up = True
+                if this_down <=7:
+                    left_down = self.check_square(this_down,this_left,left_down)
+                else:
+                    left_down = True
+            else:
+                left_up=True
+                left_down=True
+            
+            if this_right <=7:
+                if this_up >=0:
+                    right_up = self.check_square(this_up,this_right,right_up)
+                else:
+                    right_up = True
+
+                if this_down <=7:
+                    right_down = self.check_square(this_down,this_right,right_down)
+                else:
+                    right_down = True
+            else:
+                right_up=True
+                right_down=True
+            a+=1
+
+
+
+"""
 
             if left_down == False and col-a >= 0 and row+a <=7 and self.master.board[row+a,col-a].colour == None:
                 self.legal_moves = np.append(self.legal_moves,[[(row+a),(col-a)]], axis=0)
@@ -47,5 +82,5 @@ class Bishop(parent.Piece):
                 if col+a <=7 and row+a <=7 and self.master.board[row+a,col+a].colour != None and self.master.board[row+a,col+a].colour != self.colour and right_down == False:
                     self.legal_moves = np.append(self.legal_moves,[[(row+a),(col+a)]], axis=0)
 #                    self.legal_moves_array[row+a,col+a] = self.master.ascii_board[row+a,col+a]
-                right_down = True    
-            a+=1
+                right_down = True   
+"""

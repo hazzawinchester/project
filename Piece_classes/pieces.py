@@ -41,14 +41,24 @@ class Piece(tk.Label):
         self.ascii = piece
         self.value = values[piece.lower() if piece != '' else '']
         self.has_moved = False
+        self.legal_moves = [[100,100]]
 
     def __str__(self):
         return f"{self.ascii},{self.pos},{self.colour}"
     
-    def update_moves(self):
-        
+    def update_legal_moves(self):
         raise NotImplementedError
+    def update_ghost_moves(self):
+        pass
 
+    def check_square(self,row,col,found):
+            if self.master.board[row,col].colour == None and found == False:
+                self.legal_moves = np.append(self.legal_moves,[[row,col]], axis=0)
+                return False
+            else:
+                if self.master.board[row,col].colour != self.colour and found == False:
+                    self.legal_moves = np.append(self.legal_moves,[[row,col]], axis=0)
+                return True
 
 class Knight(Piece):
     def __init__(self,master,piece,row,col,piece_type):
