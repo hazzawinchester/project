@@ -16,31 +16,32 @@ class Drag_handler():
         widget.bind("<ButtonRelease-1>", self.on_drop)
 
     def on_start(self, event):
+        self.master = event.widget.master
         #documents the starting point of the piece so it can be returned if the move is invalid
-        self.start_row,self.start_col = (event.y_root-event.widget.master.winfo_rooty())//100,(event.x_root-event.widget.master.winfo_rootx())//100
+        self.start_row,self.start_col = (event.y_root-self.master.winfo_rooty())//100,(event.x_root-self.master.winfo_rootx())//100
         event.widget.update_legal_moves()
+        #self.display_possible_moves(event)
 
     def on_drag(self, event):
         #makes the piece follow beneath the position of the mouse on the screen by redrawing every time it moves
-        event.widget.place(x=(event.x_root-event.widget.master.winfo_rootx()),y=(event.y_root-event.widget.master.winfo_rooty()),anchor="center")
-        #event.widget.config(x=(event.x_root-event.widget.master.winfo_rootx()),y=(event.y_root-event.widget.master.winfo_rooty()))
+        event.widget.place(x=(event.x_root-self.master.winfo_rootx()),y=(event.y_root-self.master.winfo_rooty()),anchor="center")
         event.widget.lift()
 
     def on_drop(self, event):
         #locks the widget into the nearst gird space or retruns it to the starting point if it is invalid
-        row,col = (event.y_root-event.widget.master.winfo_rooty())//100,(event.x_root-event.widget.master.winfo_rootx())//100
-        if (event.widget.legal_moves == np.array([row,col])).all(1).any():
+        row,col = (event.y_root-self.master.winfo_rooty())//100,(event.x_root-self.master.winfo_rootx())//100
+        move = np.array([row,col])
+        if (event.widget.legal_moves == move).all(1).any():
 
-            event.widget.master.grid_slaves(row,col)[0].destroy()
+            self.master.grid_slaves(row,col)[0].destroy()
             event.widget.grid(row=row,column=col)
 
-
             # .baord[colum,row]
-            temp = p.Piece(event.widget.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
-            event.widget.master.board[row,col] = event.widget
-            event.widget.master.board[self.start_row,self.start_col] = temp
-            event.widget.master.ascii_board[row,col] = event.widget.ascii
-            event.widget.master.ascii_board[self.start_row,self.start_col] = temp.ascii
+            temp = p.Piece(self.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
+            self.master.board[row,col] = event.widget
+            self.master.board[self.start_row,self.start_col] = temp
+            self.master.ascii_board[row,col] = event.widget.ascii
+            self.master.ascii_board[self.start_row,self.start_col] = temp.ascii
             temp.grid(row=self.start_row,column=self.start_col)
 
             event.widget.pos =[row,col]
@@ -48,10 +49,11 @@ class Drag_handler():
             self.get_material_diff(event)
 
             #self.get_ghost_moves(event,[self.start_row,self.start_col],[row,col])
-            #print(event.widget)
             #event.widget.update_moves()
 
             event.widget.has_moved=True
+
+            
         else:
             event.widget.grid(row=self.start_row,column=self.start_col)
 
@@ -65,15 +67,16 @@ class Drag_handler():
         for i in event.widget.legal_moves:
             if (i == np.array([100,100])).any():
                 continue
-            self.master.board[i[0],i[1]].config(bg ="red")
+            #event.widget.master.gridslaves(row =i[0],column =i[1])[0].config(bg ="red")
 
     def get_material_diff(self,event):
         w = 0
         bl = 0
+        self.master_board = event.widget.master.board
         for a in range(8):
             for b in range(8):
-                if event.widget.master.board[a][b].colour == "w":
-                    w += event.widget.master.board[a][b].value
-                elif event.widget.master.board[a][b].colour == "b":
-                    bl+= event.widget.master.board[a][b].value
+                if self.master[a][b].colour == "w":
+                    w += self.master[a][b].value
+                elif self.master[a][b].colour == "b":
+                    bl+= self.master[a][b].value
         print("+"+ str((w-bl)//100)) if (w-bl) >= 0 else print("-"+ str((bl-w)//100))
