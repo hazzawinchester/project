@@ -23,6 +23,8 @@ class chessboard(tk.Frame):
         self.move_start=None
         self.piece_type = piece_type
         self.piece_list = []
+        self.en_passent = [100,100]
+        self.move = "w"
 
         self.dnd = dh.Drag_handler()
 

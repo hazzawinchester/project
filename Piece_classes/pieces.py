@@ -59,6 +59,10 @@ class Piece(tk.Label):
                 if self.master.board[row,col].colour != self.colour and found == False:
                     self.legal_moves = np.append(self.legal_moves,[[row,col]], axis=0)
                 return True
+            
+    def check_ghost_square(self,row,col):
+        pass
+
 
 class Knight(Piece):
     def __init__(self,master,piece,row,col,piece_type):

@@ -8,7 +8,6 @@ class Queen(parent.Piece):
 
     def update_legal_moves(self):  #0.26763200759887695, 2.7*10^-4 per move max
         self.legal_moves = [[100,100]]
-#        self.legal_moves_array = np.zeros((8,8),dtype=str)
         row,col = self.pos[0],self.pos[1]
         left,right,up,down,left_up,left_down,right_up,right_down,a = False,False,False,False,False,False,False,False,1
 
@@ -60,6 +59,8 @@ class Queen(parent.Piece):
             else:
                 up = True
             a+=1
+    def update_ghost_moves(self):
+        pass
 
 
     

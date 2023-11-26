@@ -7,8 +7,6 @@ import time
 
 
 # runner that collects all GUI elements to assembel them into the software
-s = time.time()
-
 def create_board(layout="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",piece_type="classic"):
     global chessboard
     # create chessboard instance
@@ -26,8 +24,6 @@ window.geometry("800x800")
 create_board(piece_type="periodic") # 0.3 per iteration
 
 
-#print(time.time()-s)
-# Loop to run the window with all of its widgets
 window.mainloop()
 
 
