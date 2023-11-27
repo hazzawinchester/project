@@ -1,6 +1,4 @@
-import tkinter as tk
 from Piece_classes import pieces as p
-from Piece_classes import Pawn,Bishop,Knight,Rook,Queen,King
 import numpy as np
 
 pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '♚': 'k', '♙': 'P', '♘': 'N', '♗': 'B', '♖': 'R', '♕': 'Q', '♔': 'K'}
@@ -75,8 +73,8 @@ class Drag_handler():
         self.master_board = event.widget.master.board
         for a in range(8):
             for b in range(8):
-                if self.master[a][b].colour == "w":
-                    w += self.master[a][b].value
-                elif self.master[a][b].colour == "b":
-                    bl+= self.master[a][b].value
+                if self.master_board[a][b].colour == "w":
+                    w += self.master_board[a][b].value
+                elif self.master_board[a][b].colour == "b":
+                    bl+= self.master_board[a][b].value
         print("+"+ str((w-bl)//100)) if (w-bl) >= 0 else print("-"+ str((bl-w)//100))

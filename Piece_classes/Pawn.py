@@ -1,6 +1,6 @@
 from Piece_classes import pieces as parent
 from numpy import append
-import time
+
 
 class Pawn(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):

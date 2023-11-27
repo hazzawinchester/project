@@ -1,5 +1,4 @@
 from Piece_classes import pieces as parent
-import numpy as np
 
 class Bishop(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):

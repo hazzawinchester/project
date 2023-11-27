@@ -1,6 +1,6 @@
 from Piece_classes import pieces as parent
 import numpy as np
-import time
+
 class Knight(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)

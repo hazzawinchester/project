@@ -1,6 +1,4 @@
 from Piece_classes import pieces as parent
-import numpy as np
-import time
 
 class Queen(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
@@ -59,6 +57,7 @@ class Queen(parent.Piece):
             else:
                 up = True
             a+=1
+
     def update_ghost_moves(self):
         pass
 
