@@ -29,7 +29,8 @@ class Drag_handler():
         #locks the widget into the nearst gird space or retruns it to the starting point if it is invalid
         row,col = (event.y_root-self.master.winfo_rooty())//100,(event.x_root-self.master.winfo_rootx())//100
         move = np.array([row,col])
-        if (event.widget.legal_moves == move).all(1).any():
+        if (event.widget.legal_moves == move).all(1).any() and self.master.active_colour == event.widget.colour:
+
 
             self.master.grid_slaves(row,col)[0].destroy()
             event.widget.grid(row=row,column=col)
@@ -50,6 +51,17 @@ class Drag_handler():
             #event.widget.update_moves()
 
             event.widget.has_moved=True
+            
+            #turn controlling
+            self.master.half_move += 1
+
+            if self.master.half_move % 2 == 1:
+                self.master.active_colour = "b"
+            else:
+                self.master.active_colour ="w"
+                self.master.full_move += 1
+            
+            print(self.master)
 
             
         else:

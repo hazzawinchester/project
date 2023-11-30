@@ -24,6 +24,7 @@ create_board(piece_type="periodic") # 0.3 per iteration
 
 print(time.time()-s)
 
+
 window.mainloop()
 
 

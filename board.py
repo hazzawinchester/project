@@ -14,7 +14,7 @@ pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '�
 
 # board class which will be used to create a chessboard from a given FEN string, is a child of tk.frame so it can contain the gui function of the board
 class chessboard(tk.Frame):
-    def __init__(self, master=None,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",piece_type="classic"):
+    def __init__(self, master=None,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",piece_type="classic",real = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
         super().__init__(master)
 
         self.grid()
@@ -23,14 +23,12 @@ class chessboard(tk.Frame):
         self.move_start=None
         self.piece_type = piece_type
         self.piece_list = []
-        self.en_passent = [100,100]
-        self.move = "w"
 
         self.dnd = dh.Drag_handler()
 
+        
         self.ascii_board = np.zeros((8,8),dtype=str)
-        self.make_array_of_pieces(FEN)
-
+        self.FEN_extractor(real)
         self.board_background()
 
         self.create_widgets()
@@ -39,7 +37,7 @@ class chessboard(tk.Frame):
         self.set_all_piece_moves()
 
     def __str__(self): # if chessboard is printed in an emergancy it will output the ascii reprpresntation of the board
-        return f"{self.ascii_board}"
+        return f"{self.convert_into_fen()}"
 
 
     # not finished will have added functionality based on pieces
@@ -93,6 +91,36 @@ class chessboard(tk.Frame):
                         for z in range(int(a)):
                             row.append('')
                 self.ascii_board[i] = np.array(row)
+
+    def FEN_extractor(self,fen):
+        fen = fen.split(" ")
+        self.make_array_of_pieces(fen[0])
+        self.active_colour = fen[1]
+        self.avaiable_castle = fen[2]
+        self.en_passent = fen[3]
+        self.half_move = int(fen[4])
+        self.full_move = int(fen[5])
+
+    def convert_into_fen(self):
+        board = ""
+        count = 0
+        for i in self.ascii_board:
+            temp = ""
+            for a in range(len(i)):
+                if i[a] == '' :
+                    count+= 1
+                    if a == 7:
+                        temp += str(count)
+                        count = 0
+                elif count > 0:
+                    temp += str(count) + i[a]
+                    count = 0
+                else:
+                    temp += i[a]
+            board += temp + "/"
+        board = board[:-1]
+        return f"{board} {self.active_colour} {self.avaiable_castle} {self.en_passent} {self.half_move} {self.full_move}"
+
 
     
     
