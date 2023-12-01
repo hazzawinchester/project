@@ -14,21 +14,24 @@ class Drag_handler():
         widget.bind("<B1-Motion>", self.on_drag)
         widget.bind("<ButtonRelease-1>", self.on_drop)
 
+    def get_cursor_pos(self,event):
+        return (event.y_root-self.master.winfo_rooty()-self.master.border_width)//100,(event.x_root-self.master.winfo_rootx()-self.master.border_width)//100
+
     def on_start(self, event):
         self.master = event.widget.master
         #documents the starting point of the piece so it can be returned if the move is invalid
-        self.start_row,self.start_col = (event.y_root-self.master.winfo_rooty())//100,(event.x_root-self.master.winfo_rootx())//100
+        self.start_row,self.start_col = self.get_cursor_pos(event)
         event.widget.update_legal_moves()
         #self.display_possible_moves(event)
 
     def on_drag(self, event):
         #makes the piece follow beneath the position of the mouse on the screen by redrawing every time it moves
-        event.widget.place(x=(event.x_root-self.master.winfo_rootx()),y=(event.y_root-self.master.winfo_rooty()),anchor="center")
+        event.widget.place(x=(event.x_root-self.master.winfo_rootx()-self.master.border_width),y=(event.y_root-self.master.winfo_rooty()-self.master.border_width),anchor="center")
         event.widget.lift()
 
     def on_drop(self, event):
         #locks the widget into the nearst gird space or retruns it to the starting point if it is invalid
-        row,col = (event.y_root-self.master.winfo_rooty())//100,(event.x_root-self.master.winfo_rootx())//100
+        row,col = self.get_cursor_pos(event)
         move = np.array([row,col])
         piece = event.widget
         if (piece.legal_moves == move).all(1).any() and self.master.active_colour == piece.colour:

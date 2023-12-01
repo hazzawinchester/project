@@ -14,14 +14,16 @@ pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '�
 
 # board class which will be used to create a chessboard from a given FEN string, is a child of tk.frame so it can contain the gui function of the board
 class chessboard(tk.Frame):
-    def __init__(self, master=None,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",piece_type="classic", game_type="2p", colour_scheme=["#e2bd8d","#421e00"]):
-        super().__init__(master)
+    def __init__(self, master=None,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",piece_type="classic", game_type="2p", colour_scheme=["#e2bd8d","#421e00"], border_width = 35):
+        super().__init__(master,borderwidth=border_width, bg=colour_scheme[1])
 
         self.master = master
         self.move_start=None
         self.piece_type = piece_type
         self.game_type = game_type
         self.piece_list = []
+        self.border_width =border_width
+
         white = colour_scheme[0]
         black =colour_scheme[1]
         self.colour_scheme = {"white": white, "black": black}

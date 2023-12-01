@@ -8,7 +8,7 @@ class Rook(parent.Piece):
         super().__init__(master,piece,row,col,piece_type)
 
 
-    def update_legal_moves(self):  # 4*10^-9 per move max
+    def update_legal_moves(self):  # 2.6*10^-6 per move max
         self.legal_moves = [[100,100]]
         row,col = self.pos[0],self.pos[1]
         left,right,up,down,a = False,False,False,False,1
