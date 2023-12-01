@@ -14,21 +14,24 @@ pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '�
 
 # board class which will be used to create a chessboard from a given FEN string, is a child of tk.frame so it can contain the gui function of the board
 class chessboard(tk.Frame):
-    def __init__(self, master=None,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",piece_type="classic",real = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
+    def __init__(self, master=None,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",piece_type="classic", game_type="2p", colour_scheme=["#e2bd8d","#421e00"]):
         super().__init__(master)
-
-        self.grid()
 
         self.master = master
         self.move_start=None
         self.piece_type = piece_type
+        self.game_type = game_type
         self.piece_list = []
+        white = colour_scheme[0]
+        black =colour_scheme[1]
+        self.colour_scheme = {"white": white, "black": black}
+        
 
         self.dnd = dh.Drag_handler()
 
         
         self.ascii_board = np.zeros((8,8),dtype=str)
-        self.FEN_extractor(real)
+        self.FEN_extractor(FEN)
         self.board_background()
 
         self.create_widgets()
@@ -36,8 +39,13 @@ class chessboard(tk.Frame):
         self.board  = np.array([[self.grid_slaves()[-(65+(8*a+i))] for i in range(8)] for a in range(8)])
         self.set_all_piece_moves()
 
-    def __str__(self): # if chessboard is printed in an emergancy it will output the ascii reprpresntation of the board
+    def __str__(self): 
         return f"{self.convert_into_fen()}"
+    
+    def destroy(self):
+        print(self.convert_into_fen())
+        super().destroy()
+        
 
 
     # not finished will have added functionality based on pieces
@@ -70,15 +78,17 @@ class chessboard(tk.Frame):
             i.update_legal_moves()
 
     #creates a 8*8 grid of coloured squares to serve as the board being played on
-    def board_background(self,white="white",black="gray"):
+    def board_background(self):
+        white = self.colour_scheme["white"]
+        black = self.colour_scheme["black"]
         for row in range(8):
             for col in range(8):
-                squares = tk.Frame(self, bg=white if (row+col)%2==0 else black ,width=100, height=100, borderwidth=0)
+                squares = tk.Frame(self, bg= white if (row+col)%2==0 else black ,width=100, height=100, borderwidth=4)
                 squares.grid(row=row, column=col)
     
     #translates the FEN string into a 2D array of the pieces in ther respective positions (black at the top/start of the array)
-    def make_array_of_pieces(self,FEN):
-        temp = FEN.split("/")
+    def make_array_of_pieces(self,board):
+        temp = board.split("/")
         for i in range(len(temp)):
             if temp[i].isalpha():
                 self.ascii_board[i] = np.array([a for a in temp[i]])
@@ -120,6 +130,56 @@ class chessboard(tk.Frame):
             board += temp + "/"
         board = board[:-1]
         return f"{board} {self.active_colour} {self.avaiable_castle} {self.en_passent} {self.half_move} {self.full_move}"
+    
+
+    
+# once a pawn has reached the last rank it is deleted and the user is offered 4 options between for which piece they would like to promote to 
+    def promote(self,piece):
+        row,col = piece.pos
+        container = tk.Frame(self,width=100,height=100, bg="white" if (row+col)%2==0 else "gray", borderwidth=0,padx=0,pady=0)
+        container.grid_columnconfigure(col, minsize=2)
+        container.grid_rowconfigure(row, minsize=2)
+
+        container.grid(row=row,column=col)
+
+        piece.destroy()
+
+        self.active_colour = None
+
+        queen =  tk.Button(container, bg= self.colour_scheme["white"], text="♛", font=["arial",15], command= lambda: self.replace_piece("q",container,[row,col])).grid(row=0,column=0, sticky= "nesw")
+        rook =   tk.Button(container, bg= self.colour_scheme["black"], text="♜" ,font=["arial",15], command= lambda: self.replace_piece("r",container,[row,col])).grid(row=0,column=1, sticky= "nesw")
+        bishop = tk.Button(container, bg= self.colour_scheme["black"], text="♝", font=["arial",15], command= lambda: self.replace_piece("b",container,[row,col])).grid(row=1,column=0, sticky= "nesw")
+        knight = tk.Button(container, bg= self.colour_scheme["white"], text="♞", font=["arial",15], command= lambda: self.replace_piece("n",container,[row,col])).grid(row=1,column=1, sticky= "nesw")
+
+        # places a piece in the position of the pawn and corrects all the data structures to refelct this
+    def replace_piece(self,p,container,pos):
+        row,col = pos
+        if row == 0:
+            piece_ascii = p.upper()
+        else:
+            piece_ascii = p
+
+        if p == "q":
+            piece = Queen.Queen(self,piece_ascii,row,col,self.piece_type)         
+        elif p == "r":
+            piece = Rook.Rook(self,piece_ascii,row,col,self.piece_type)         
+        elif p == "n":
+            piece = Knight.Knight(self,piece_ascii,row,col,self.piece_type)                    
+        elif p == "b":
+            piece = Bishop.Bishop(self,piece_ascii,row,col,self.piece_type)   
+        
+        self.ascii_board[row,col] = piece_ascii
+        self.board[row,col] = piece
+        self.piece_list = np.append(self.piece_list,piece)
+
+        piece.grid(row=row,column=col)
+        self.dnd.add_dragable(piece)
+
+        container.destroy()
+
+        self.active_colour = "w" if row ==7 else "b"
+
+
 
 
     
