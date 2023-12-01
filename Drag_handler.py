@@ -1,5 +1,6 @@
 from Piece_classes import pieces as p
 import numpy as np
+import tkinter as tk
 
 pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '♚': 'k', '♙': 'P', '♘': 'N', '♗': 'B', '♖': 'R', '♕': 'Q', '♔': 'K'}
 
@@ -29,29 +30,26 @@ class Drag_handler():
         #locks the widget into the nearst gird space or retruns it to the starting point if it is invalid
         row,col = (event.y_root-self.master.winfo_rooty())//100,(event.x_root-self.master.winfo_rootx())//100
         move = np.array([row,col])
-        if (event.widget.legal_moves == move).all(1).any() and self.master.active_colour == event.widget.colour:
-
+        piece = event.widget
+        if (piece.legal_moves == move).all(1).any() and self.master.active_colour == piece.colour:
 
             self.master.grid_slaves(row,col)[0].destroy()
-            event.widget.grid(row=row,column=col)
-
-            # .baord[colum,row]
+            piece.grid(row=row,column=col)
             temp = p.Piece(self.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
-            self.master.board[row,col] = event.widget
+            self.master.board[row,col] = piece
             self.master.board[self.start_row,self.start_col] = temp
-            self.master.ascii_board[row,col] = event.widget.ascii
+            self.master.ascii_board[row,col] = piece.ascii
             self.master.ascii_board[self.start_row,self.start_col] = temp.ascii
             temp.grid(row=self.start_row,column=self.start_col)
-
-            event.widget.pos =[row,col]
-
+            piece.pos =[row,col]
+            
             self.get_material_diff(event)
 
             #self.get_ghost_moves(event,[self.start_row,self.start_col],[row,col])
-            #event.widget.update_moves()
+            #piece.update_moves()
 
-            event.widget.has_moved=True
-            
+            piece.has_moved=True
+
             #turn controlling
             self.master.half_move += 1
 
@@ -60,12 +58,15 @@ class Drag_handler():
             else:
                 self.master.active_colour ="w"
                 self.master.full_move += 1
+    
+            #promotion check
+            if piece.ascii.lower() == "p" and (piece.pos[0] == 0 or piece.pos[0] == 7):
+                self.master.promote(piece)
+                                
             
-            print(self.master)
-
             
         else:
-            event.widget.grid(row=self.start_row,column=self.start_col)
+            piece.grid(row=self.start_row,column=self.start_col)
 
     def get_ghost_moves(self,event,start,end):
         event.widget.update_ghost_moves()
@@ -90,3 +91,4 @@ class Drag_handler():
                 elif self.master_board[a][b].colour == "b":
                     bl+= self.master_board[a][b].value
         print("+"+ str((w-bl)//100)) if (w-bl) >= 0 else print("-"+ str((bl-w)//100))
+    

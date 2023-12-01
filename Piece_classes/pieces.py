@@ -24,6 +24,8 @@ class Piece(tk.Label):
             else: 
                 #fetches the black image corelating to the piece
                 self.img = Image.open(f"Pieces_img/{piece_type}/{piece_type}b{piece}.{file_type[piece_type]}")
+                if master.game_type =="2p":
+                    self.img = self.img.transpose(Image.ROTATE_180)
                 self.colour = "b"
                 
             #sets the image to a standard size and applys it to the object    
@@ -32,7 +34,7 @@ class Piece(tk.Label):
             super().__init__(master,borderwidth=0,image=self.img,bg="gray")
         else:
             #used for empty squares so operations can be generalised to be performed on tk.lable objects
-            super().__init__(master,borderwidth=0,bg="white" if (row+col)%2==0 else "gray")
+            super().__init__(master,borderwidth=0,bg=master.colour_scheme["white"] if (row+col)%2==0 else master.colour_scheme["black"])
             self.colour = None
 
         # piece attributes
@@ -45,6 +47,12 @@ class Piece(tk.Label):
 
     def __str__(self):
         return f"{self.ascii},{self.pos},{self.colour}"
+    
+    def destroy(self):
+        super().destroy()
+        if self.ascii != '':
+            self.master.piece_list = np.delete(self.master.piece_list, np.where(self.master.piece_list == self))
+
     
     def update_legal_moves(self):
         pass
@@ -62,14 +70,4 @@ class Piece(tk.Label):
             
     def check_ghost_square(self,row,col):
         pass
-
-
-class Knight(Piece):
-    def __init__(self,master,piece,row,col,piece_type):
-        super().__init__(master,piece,row,col,piece_type)
-        self.moves = np.zeros((8,8),dtype=int)
-        self.master = master
-
-    def update_moves(self,move):
-        print(self.master.ascii_board)
  

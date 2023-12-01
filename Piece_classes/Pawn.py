@@ -21,7 +21,7 @@ class Pawn(parent.Piece):
         left1 = col- 1
         right1= col+ 1
 
-        if row>=1 and board[row1,col].colour == None:
+        if row1>=0 and row1<=7 and board[row1,col].colour == None:
             self.legal_moves = append(self.legal_moves,[[(row1),col]], axis=0)        
             if board[row2,col].colour == None and not self.has_moved:
                 self.legal_moves = append(self.legal_moves,[[(row2),col]], axis=0)
