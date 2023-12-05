@@ -1,6 +1,7 @@
 import tkinter as tk
 from PIL import ImageTk, Image
 import numpy as np
+from functools import lru_cache
 
 pieces = {'p':"♟",'n':"♞",'b':"♝",'r':"♜",'q':"♛",'k':"♚", "P":"♙", "N":"♘", "B":"♗", "R":"♖", "Q":"♕", "K":"♔", '':''}
 file_type = {"classic":"png","periodic":"png", "hidden":"png"}
@@ -33,6 +34,8 @@ class Piece(tk.Label):
                     self.img = Image.open(f"Pieces_img/{piece_type}/{piece_type}.{file_type[piece_type]}")
                     self.colour = "b"
                 self.img = self.img.resize((75, 75))
+                self.img = ImageTk.PhotoImage(self.img)
+                super().__init__(master,borderwidth=0,image=self.img,bg="gray")
             else:
                 #checks if the pieces is white (.isupper() will be True)
                 if piece.isupper():
@@ -48,21 +51,22 @@ class Piece(tk.Label):
                     
                 #sets the image to a standard size and applys it to the object    
                 self.img = self.img.resize((90, 90))
-            self.img = ImageTk.PhotoImage(self.img)
-            super().__init__(master,borderwidth=0,image=self.img,bg="gray")
+                self.img = ImageTk.PhotoImage(self.img)
+                super().__init__(master,borderwidth=0,image=self.img,bg="gray")
         else:
             #used for empty squares so operations can be generalised to be performed on tk.lable objects
             super().__init__(master,borderwidth=0,bg=master.colour_scheme["white"] if (row+col)%2==0 else master.colour_scheme["black"])
             self.colour = None
 
         # piece attributes
-        self.master=master
+        self.master = master
         self.pos = [row,col]
         self.ascii = piece
         self.value = values[piece.lower() if piece != '' else '']
         self.has_moved = False
         self.legal_moves = [[100,100]]
-
+        self.ghost_moves = [[100,100]]
+        
     def __str__(self):
         return f"{self.ascii},{self.pos},{self.colour}"
     
@@ -77,13 +81,17 @@ class Piece(tk.Label):
     def update_ghost_moves(self):
         pass
 
-    def check_square(self,row,col,found):
+    def check_square(self,row,col,found= False):
             if self.master.board[row,col].colour == None and found == False:
                 self.legal_moves = np.append(self.legal_moves,[[row,col]], axis=0)
+                self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
                 return False
             else:
                 if self.master.board[row,col].colour != self.colour and found == False:
                     self.legal_moves = np.append(self.legal_moves,[[row,col]], axis=0)
+                    self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
+                if self.master.board[row,col].colour == self.colour:
+                    self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
                 return True
             
     def check_ghost_square(self,row,col):

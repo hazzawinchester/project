@@ -78,6 +78,7 @@ class chessboard(tk.Frame):
     def set_all_piece_moves(self):
         for i in self.piece_list:
             i.update_legal_moves()
+            #i.update_ghost_moves()
 
     #creates a 8*8 grid of coloured squares to serve as the board being played on
     def board_background(self):

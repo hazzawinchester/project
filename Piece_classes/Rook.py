@@ -10,6 +10,7 @@ class Rook(parent.Piece):
 
     def update_legal_moves(self):  # 2.6*10^-6 per move max
         self.legal_moves = [[100,100]]
+        self.ghost_moves = [[100,100]]
         row,col = self.pos[0],self.pos[1]
         left,right,up,down,a = False,False,False,False,1
         while left==False or right==False or up==False or down==False:
@@ -36,16 +37,12 @@ class Rook(parent.Piece):
                     down = self.check_square((row+a),col,down)
                 else:
                     down = True
-            a+=1
-        
+            a+=1        
         
     def update_ghost_moves(self):
-        pass
-    
-        # self.all_possible_moves = np.zeros((8,8),dtype=str)
-        # row,col = self.pos[0],self.pos[1]
-        # left,right,up,down,a = False,False,False,False,1
-        
-        # while left==False or right==False or up==False or down==False:
-        #     pass
+        self.ghost_moves = [[100,100]]
+        row,col = self.pos
+        self.ghost_moves=  np.append(self.ghost_moves,[(a,col) for a in range(8)], axis=0)
+        self.ghost_moves=  np.append(self.ghost_moves,[(row,a) for a in range(8)], axis=0)
+
 

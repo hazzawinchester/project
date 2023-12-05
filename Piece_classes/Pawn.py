@@ -9,6 +9,7 @@ class Pawn(parent.Piece):
 
     def update_legal_moves(self): 
         self.legal_moves = [[100,100]]
+        self.ghost_moves = [[100,100]]
         row,col = self.pos[0],self.pos[1]        
         
         if self.colour == "w":

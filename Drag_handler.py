@@ -22,8 +22,14 @@ class Drag_handler():
         #documents the starting point of the piece so it can be returned if the move is invalid
         self.start_row,self.start_col = self.get_cursor_pos(event)
         event.widget.update_legal_moves()
-        #self.display_possible_moves(event)
 
+
+        if event.widget.colour == self.master.active_colour:
+            for i in event.widget.legal_moves:
+                row,col = i
+                for a in self.master.grid_slaves(row =row,column =col):
+                    a.config(bg=("#"+hex(int(int(self.master.colour_scheme["white"][1:],16) *0.5)).lstrip("0x")) if (row+col)%2==0 else ("#"+hex(int(int(self.master.colour_scheme["black"][1:],16)*0.5)).lstrip("0x")))
+        
     def on_drag(self, event):
         #makes the piece follow beneath the position of the mouse on the screen by redrawing every time it moves
         event.widget.place(x=(event.x_root-self.master.winfo_rootx()-self.master.border_width),y=(event.y_root-self.master.winfo_rooty()-self.master.border_width),anchor="center")
@@ -33,7 +39,13 @@ class Drag_handler():
         #locks the widget into the nearst gird space or retruns it to the starting point if it is invalid
         row,col = self.get_cursor_pos(event)
         move = np.array([row,col])
-        piece = event.widget
+        piece = event.widget    
+
+        for i in piece.legal_moves:
+            temp_row,temp_col = i
+            for a in self.master.grid_slaves(row =temp_row,column =temp_col):
+                a.config(bg= self.master.colour_scheme["white"] if (temp_row+temp_col)%2==0 else self.master.colour_scheme["black"])
+
         if (piece.legal_moves == move).all(1).any() and self.master.active_colour == piece.colour:
 
             self.master.grid_slaves(row,col)[0].destroy()
@@ -48,8 +60,7 @@ class Drag_handler():
             
             self.get_material_diff(event)
 
-            #self.get_ghost_moves(event,[self.start_row,self.start_col],[row,col])
-            #piece.update_moves()
+            self.update_affected_pieces(event,[self.start_row,self.start_col],[row,col])
 
             piece.has_moved=True
 
@@ -65,16 +76,13 @@ class Drag_handler():
             #promotion check
             if piece.ascii.lower() == "p" and (piece.pos[0] == 0 or piece.pos[0] == 7):
                 self.master.promote(piece)
-                                
-            
-            
         else:
             piece.grid(row=self.start_row,column=self.start_col)
+                
 
-    def get_ghost_moves(self,event,start,end):
-        event.widget.update_ghost_moves()
+    def update_affected_pieces(self,event,start,end):
         for i in event.widget.master.piece_list:
-            if (i.legal_moves == np.array(start)).all(1).any() or (i.legal_moves == np.array(end)).all(1).any():
+            if (i.ghost_moves == np.array(start)).all(1).any() or (i.ghost_moves == np.array(end)).all(1).any():
                 i.update_legal_moves()
 
     def display_possible_moves(self,event):

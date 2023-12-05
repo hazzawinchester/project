@@ -1,12 +1,15 @@
 from Piece_classes import pieces as parent
+import numpy as np
 
 class Queen(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)
 
     def update_legal_moves(self):  #0.26763200759887695, 2.7*10^-4 per move max
-        self.legal_moves = [[100,100]]
-        row,col = self.pos[0],self.pos[1]
+        self.legal_moves = [[100,100]] # np.empty((1,2),"int")
+        self.ghost_moves = [[100,100]]
+
+        row,col = self.pos
         left,right,up,down,left_up,left_down,right_up,right_down,a = False,False,False,False,False,False,False,False,1
 
         while left==False or right==False or up==False or down==False or left_up==False or left_down==False or right_up==False or right_down==False:
@@ -57,9 +60,5 @@ class Queen(parent.Piece):
             else:
                 up = True
             a+=1
-
-    def update_ghost_moves(self):
-        pass
-
 
     
