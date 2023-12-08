@@ -13,6 +13,7 @@ values = {"p":100,"n":305,"b":333,"r":563,"q":950,"k":0,'':0}
 #https://thenounproject.com FOR ICONS 
 # https://www.photopea.com to create images
 # piece parent class to all pieces, contains no functionality as each piece is unique 
+
 class Piece(tk.Label):
     def __init__(self,master,piece,row,col,piece_type):
         # '' is used to hold an empty sqaure
@@ -24,6 +25,7 @@ class Piece(tk.Label):
                     self.colour = "w"
                 else:
                     self.colour = "b"
+                    
             elif piece_type == "hidden":
                 if piece.isupper():
                     # fetches the white image corelating to the piece
@@ -68,12 +70,17 @@ class Piece(tk.Label):
         self.ghost_moves = [[100,100]]
         
     def __str__(self):
-        return f"{self.ascii},{self.pos},{self.colour}"
+        rows ={7:"a",6:"b",5:"c",4:"d",3:"e",2:"f",1:"g",0:"h"}
+        return f"{self.ascii},{self.colour},{rows[self.pos[0]],self.pos[1]+1}"
     
     def destroy(self):
         super().destroy()
         if self.ascii != '':
             self.master.piece_list = np.delete(self.master.piece_list, np.where(self.master.piece_list == self))
+            if self.colour == "w":
+                self.master.white_pieces = np.delete(self.master.white_pieces, np.where(self.master.white_pieces == self))
+            else:
+                self.master.black_pieces = np.delete(self.master.black_pieces, np.where(self.master.black_pieces == self))
 
     
     def update_legal_moves(self):
@@ -93,7 +100,3 @@ class Piece(tk.Label):
                 if self.master.board[row,col].colour == self.colour:
                     self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
                 return True
-            
-    def check_ghost_square(self,row,col):
-        pass
- 

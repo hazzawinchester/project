@@ -3,6 +3,7 @@ import numpy as np
 from Piece_classes import pieces as p
 import Drag_handler as dh
 from Piece_classes import Pawn,Bishop,Knight,Rook,Queen,King
+from Stack import Stack 
 
 
 
@@ -21,12 +22,17 @@ class chessboard(tk.Frame):
         self.move_start=None
         self.piece_type = piece_type
         self.game_type = game_type
-        self.piece_list = []
+    
         self.border_width =border_width
+        self.recent_moves = Stack()
 
         white = colour_scheme[0]
         black =colour_scheme[1]
         self.colour_scheme = {"white": white, "black": black}
+
+        self.piece_list = []
+        self.white_pieces = []
+        self.black_pieces = []
         
 
         self.dnd = dh.Drag_handler()
@@ -69,16 +75,28 @@ class chessboard(tk.Frame):
                     elif temp.lower() == "q":
                         piece = Queen.Queen(self,temp,row,col,self.piece_type)  
                     elif temp.lower() == "k":
-                        piece = Queen.Queen(self,temp,row,col,self.piece_type)   
+                        piece = King.King(self,temp,row,col,self.piece_type)  
+
+                    if temp.isupper():
+                        self.white_pieces = np.append(self.white_pieces,piece)
+                    else:
+                        self.black_pieces = np.append(self.black_pieces,piece)
+
                     self.piece_list = np.append(self.piece_list,piece)
                                                                              
                 piece.grid(row=row, column=col)
                 self.dnd.add_dragable(piece)
     
     def set_all_piece_moves(self):
+        save=[]
         for i in self.piece_list:
-            i.update_legal_moves()
-            #i.update_ghost_moves()
+            if i.ascii.lower() == "k":
+                save.append(i)
+            else:
+                i.update_legal_moves()
+        for a in save:
+            a.update_legal_moves()
+        
 
     #creates a 8*8 grid of coloured squares to serve as the board being played on
     def board_background(self):
@@ -149,10 +167,10 @@ class chessboard(tk.Frame):
 
         self.active_colour = None
 
-        queen =  tk.Button(container, bg= self.colour_scheme["white"], text="♛", font=["arial",15], command= lambda: self.replace_piece("q",container,[row,col])).grid(row=0,column=0, sticky= "nesw")
-        rook =   tk.Button(container, bg= self.colour_scheme["black"], text="♜" ,font=["arial",15], command= lambda: self.replace_piece("r",container,[row,col])).grid(row=0,column=1, sticky= "nesw")
-        bishop = tk.Button(container, bg= self.colour_scheme["black"], text="♝", font=["arial",15], command= lambda: self.replace_piece("b",container,[row,col])).grid(row=1,column=0, sticky= "nesw")
-        knight = tk.Button(container, bg= self.colour_scheme["white"], text="♞", font=["arial",15], command= lambda: self.replace_piece("n",container,[row,col])).grid(row=1,column=1, sticky= "nesw")
+        tk.Button(container, bg= self.colour_scheme["white"], text="♛", font=["arial",15], command= lambda: self.replace_piece("q",container,[row,col])).grid(row=0,column=0, sticky= "nesw")
+        tk.Button(container, bg= self.colour_scheme["black"], text="♜" ,font=["arial",15], command= lambda: self.replace_piece("r",container,[row,col])).grid(row=0,column=1, sticky= "nesw")
+        tk.Button(container, bg= self.colour_scheme["black"], text="♝", font=["arial",15], command= lambda: self.replace_piece("b",container,[row,col])).grid(row=1,column=0, sticky= "nesw")
+        tk.Button(container, bg= self.colour_scheme["white"], text="♞", font=["arial",15], command= lambda: self.replace_piece("n",container,[row,col])).grid(row=1,column=1, sticky= "nesw")
 
         # places a piece in the position of the pawn and corrects all the data structures to refelct this
     def replace_piece(self,p,container,pos):
@@ -174,6 +192,13 @@ class chessboard(tk.Frame):
         self.ascii_board[row,col] = piece_ascii
         self.board[row,col] = piece
         self.piece_list = np.append(self.piece_list,piece)
+
+        if piece_ascii.isupper():
+            self.white_pieces = np.append(self.white_pieces,piece)
+        else:
+            self.black_pieces = np.append(self.black_pieces,piece)
+        
+        piece.update_legal_moves()
 
         piece.grid(row=row,column=col)
         self.dnd.add_dragable(piece)
