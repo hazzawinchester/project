@@ -37,11 +37,11 @@ class Pawn(parent.Piece):
     def check_take(self,board,row,col):
         left,right = col-1,col+1
         if col>=1:
-            if not board[row,left].colour in (None,self.colour):
+            if not board[row,left].colour in (None,self.colour) or ([row,left] == self.master.en_passent).all():
                 self.legal_moves = append(self.legal_moves,[[row,left]], axis=0)
             self.ghost_moves = append(self.ghost_moves,[[row,left]], axis=0)
         if col <=6:
-            if not board[row,right].colour in (None,self.colour):
+            if not board[row,right].colour in (None,self.colour) or ([row,right] == self.master.en_passent).all():
                 self.legal_moves = append(self.legal_moves,[[row,right]], axis=0)
             self.ghost_moves = append(self.ghost_moves,[[row,right]], axis=0)
 

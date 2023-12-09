@@ -12,6 +12,7 @@ from Stack import Stack
 pieces = {'p':"♟",'n':"♞",'b':"♝",'r':"♜",'q':"♛",'k':"♚", "P":"♙", "N":"♘", "B":"♗", "R":"♖", "Q":"♕", "K":"♔"}
 pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '♚': 'k', '♙': 'P', '♘': 'N', '♗': 'B', '♖': 'R', '♕': 'Q', '♔': 'K'}
 
+binary = {"a":7,"b":6,"c":5,"d":4, "e":3, "f":2, "g":1, "h":0}
 
 # board class which will be used to create a chessboard from a given FEN string, is a child of tk.frame so it can contain the gui function of the board
 class chessboard(tk.Frame):
@@ -32,8 +33,9 @@ class chessboard(tk.Frame):
 
         self.piece_list = []
         self.white_pieces = []
-        self.black_pieces = []
-        
+        self.black_pieces = []    
+        self.black_king = None
+        self.white_king = None   
 
         self.dnd = dh.Drag_handler()
 
@@ -46,7 +48,16 @@ class chessboard(tk.Frame):
 
         self.board  = np.array([[self.grid_slaves()[-(65+(8*a+i))] for i in range(8)] for a in range(8)])
         self.set_all_piece_moves()
-
+        
+        self.white_can_take = [[100,100]]
+        self.black_can_take = [[100,100]]
+        self.update_can_take("w")
+        self.update_can_take("b")
+        self.white_king.update_legal_moves()
+        self.black_king.update_legal_moves()
+        
+        self.bind('<Return>', self.reverse_move)
+        
     def __str__(self): 
         return f"{self.convert_into_fen()}"
     
@@ -54,9 +65,6 @@ class chessboard(tk.Frame):
         print(self.convert_into_fen())
         super().destroy()
         
-
-
-    # not finished will have added functionality based on pieces
     def create_widgets(self):
         for row in range(8):
             for col in range(8):
@@ -90,12 +98,8 @@ class chessboard(tk.Frame):
     def set_all_piece_moves(self):
         save=[]
         for i in self.piece_list:
-            if i.ascii.lower() == "k":
-                save.append(i)
-            else:
+            if i.ascii.lower() != "k":
                 i.update_legal_moves()
-        for a in save:
-            a.update_legal_moves()
         
 
     #creates a 8*8 grid of coloured squares to serve as the board being played on
@@ -110,7 +114,7 @@ class chessboard(tk.Frame):
     #translates the FEN string into a 2D array of the pieces in ther respective positions (black at the top/start of the array)
     def make_array_of_pieces(self,board):
         temp = board.split("/")
-        for i in range(len(temp)):
+        for i in range(8):
             if temp[i].isalpha():
                 self.ascii_board[i] = np.array([a for a in temp[i]])
             elif not(temp[i].isnumeric()):
@@ -123,12 +127,43 @@ class chessboard(tk.Frame):
                             row.append('')
                 self.ascii_board[i] = np.array(row)
 
+    def update_can_take(self,colour):
+        if colour == "b":
+            self.black_can_take = [[100,100]]
+            for i in self.black_pieces:
+                if i.ascii == "k":
+                    self.black_can_take = np.unique(np.concatenate((self.black_can_take,i.ghost_moves),axis=0),axis=0)
+                if i.ascii == "p":
+                    if i.pos[1] in [0,7]:
+                        self.black_can_take = np.unique(np.concatenate((self.black_can_take,i.ghost_moves[-1:]),axis=0),axis=0)
+                    else:
+                        self.black_can_take = np.unique(np.concatenate((self.black_can_take,i.ghost_moves[-2:]),axis=0),axis=0)
+                else:
+                    self.black_can_take = np.unique(np.concatenate((self.black_can_take,i.ghost_moves),axis=0),axis=0)
+        else:
+            self.white_can_take = [[100,100]]
+            for i in self.white_pieces:
+                if i.ascii == "K":
+                    self.white_can_take = np.unique(np.concatenate((self.white_can_take,i.ghost_moves),axis=0),axis=0)
+                elif i.ascii == "P":
+                    if i.pos[1] in [0,7]:
+                        self.white_can_take = np.unique(np.concatenate((self.white_can_take,i.ghost_moves[-1:]),axis=0),axis=0)
+                    else:
+                        self.white_can_take = np.unique(np.concatenate((self.white_can_take,i.ghost_moves[-2:]),axis=0),axis=0)
+                else:
+                    self.white_can_take = np.unique(np.concatenate((self.white_can_take,i.ghost_moves),axis=0),axis=0)
+
+    def reverse_move(self): # NEEDS TO BE IMPLIMENTED
+        move = self.recent_moves.pop()
+        print(move)
+        pass
+    
     def FEN_extractor(self,fen):
         fen = fen.split(" ")
         self.make_array_of_pieces(fen[0])
         self.active_colour = fen[1]
         self.avaiable_castle = fen[2]
-        self.en_passent = fen[3]
+        self.en_passent = np.array(self.convert_from_binary(fen[3]))
         self.half_move = int(fen[4])
         self.full_move = int(fen[5])
 
@@ -151,6 +186,11 @@ class chessboard(tk.Frame):
             board += temp + "/"
         board = board[:-1]
         return f"{board} {self.active_colour} {self.avaiable_castle} {self.en_passent} {self.half_move} {self.full_move}"
+    
+    def convert_from_binary(self,move):
+        if move == '-':
+            return [100,100]
+        return [int(move[1]),binary[move[0]]]
     
 
     

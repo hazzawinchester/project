@@ -1,6 +1,7 @@
 from Piece_classes import pieces as p
 import numpy as np
 import tkinter as tk
+import time
 
 pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '♚': 'k', '♙': 'P', '♘': 'N', '♗': 'B', '♖': 'R', '♕': 'Q', '♔': 'K'}
 
@@ -36,6 +37,7 @@ class Drag_handler():
         event.widget.lift()
 
     def on_drop(self, event):
+        s = time.time()
         #locks the widget into the nearst gird space or retruns it to the starting point if it is invalid
         row,col = self.get_cursor_pos(event)
         move = np.array([row,col])
@@ -60,10 +62,34 @@ class Drag_handler():
             piece.pos =[row,col]
             
             self.get_material_diff(event)
-
-            self.master.half_move += 1
+            
+            #promotion check
+            if piece.ascii.lower() == "p":
+                if (move == self.master.en_passent).all():
+                    r,c = move
+                    if self.master.half_move % 2 == 1:
+                        self.master.board[r-1,c].destroy()
+                        self.master.board[r-1,c] = p.Piece(self.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
+                        self.update_passented(event,[r-1,c])
+                    else:
+                        self.master.board[r+1,c].destroy()
+                        self.master.board[r+1,c] = p.Piece(self.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
+                        self.update_passented(event,[r+1,c])
+                elif not piece.has_moved:
+                    self.master.en_passent = np.array(piece.legal_moves[1])
+                else:
+                    self.master.en_passent = np.array([100,100])
+                if (piece.pos[0] == 0 or piece.pos[0] == 7):
+                    self.master.promote(piece)
+            else:
+                self.master.en_passent = np.array([100,100])
             piece.has_moved=True
+            
+            self.master.half_move += 1
+            #s = time.time()
+            #for i in range(10000):
             self.update_affected_pieces(event,[self.start_row,self.start_col],[row,col])
+            #print((time.time()-s)/10000)
 
             #turn controlling
             if self.master.half_move % 2 == 1:
@@ -71,20 +97,27 @@ class Drag_handler():
             else:
                 self.master.active_colour ="w"
                 self.master.full_move += 1
-            
-            
-    
-            #promotion check
-            if piece.ascii.lower() == "p" and (piece.pos[0] == 0 or piece.pos[0] == 7):
-                self.master.promote(piece)
         else:
             piece.grid(row=self.start_row,column=self.start_col)
+        print(time.time()-s)
                 
 
     def update_affected_pieces(self,event,start,end):
         for i in event.widget.master.piece_list:
             if (i.ghost_moves == np.array(start)).all(1).any() or (i.ghost_moves == np.array(end)).all(1).any():
                 i.update_legal_moves()
+            elif i.ascii.lower() == "p" and (i.ghost_moves == event.widget.master.en_passent).all(1).any():
+                i.update_legal_moves()
+        
+        self.master.update_can_take("w")
+        self.master.update_can_take("b")
+        i.master.black_king.update_legal_moves()
+        i.master.white_king.update_legal_moves()
+    
+    def update_passented(self,event,move):
+        for i in event.widget.master.piece_list:
+            if (i.ghost_moves == np.array(move)).all(1).any():
+                    i.update_legal_moves()
 
     def get_material_diff(self,event):
         w = 0
