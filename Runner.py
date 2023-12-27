@@ -21,3 +21,6 @@ window.configure(bg="#2b2b2b")
 create_board(piece_type="periodic") # 0.04 per iteration
 
 window.mainloop() 
+
+
+#PAWNS CAN EN PASSENT THEMSEVLES

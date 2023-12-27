@@ -27,7 +27,7 @@ class Pawn(parent.Piece):
     def check_forward(self,board,row1,row2,col):
         if board[row1,col].colour == None:
             blocked = self.check_square(row1,col)
-            if (not self.has_moved) and (not blocked) and (row2 >=0 and row2<=7):
+            if (not self.has_moved) and (not blocked) and (row2 >=0 and row2<=7) and (board[row2,col].colour == None):
                 self.check_square(row2,col)
             else:
                 self.ghost_moves = append(self.ghost_moves,[[row2,col]], axis=0)

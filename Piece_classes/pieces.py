@@ -3,6 +3,7 @@ from PIL import ImageTk, Image
 import numpy as np
 from functools import lru_cache
 
+
 pieces = {'p':"♟",'n':"♞",'b':"♝",'r':"♜",'q':"♛",'k':"♚", "P":"♙", "N":"♘", "B":"♗", "R":"♖", "Q":"♕", "K":"♔", '':''}
 file_type = {"classic":"png","periodic":"png", "hidden":"png"}
 values = {"p":100,"n":305,"b":333,"r":563,"q":950,"k":0,'':0}
