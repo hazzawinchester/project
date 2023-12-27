@@ -93,7 +93,7 @@ class Drag_handler():
                 else:
                     self.old_passent = self.master.en_passent
                     self.master.en_passent = np.array([200,100])
-                    self.master.store_move([self.start_row,self.start_col],move,piece.ascii,"quiet",captured_piece)
+                    self.master.store_move([self.start_row,self.start_col],move,piece.ascii,move_type,captured_piece)
                     
                 if (piece.pos[0] == 0 or piece.pos[0] == 7):
                     self.master.promote(piece,[self.start_row,self.start_col],move_type= "promo" if move_type == "quiet" else "promo-capture",captured=captured_piece)

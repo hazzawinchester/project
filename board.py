@@ -19,8 +19,8 @@ class chessboard(tk.Frame):
         self.pieces = {'p':"♟",'n':"♞",'b':"♝",'r':"♜",'q':"♛",'k':"♚", "P":"♙", "N":"♘", "B":"♗", "R":"♖", "Q":"♕", "K":"♔"}
         self.pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '♚': 'k', '♙': 'P', '♘': 'N', '♗': 'B', '♖': 'R', '♕': 'Q', '♔': 'K'}
 
-        self.binary = {"a":7,"b":6,"c":5,"d":4, "e":3, "f":2, "g":1, "h":0}
-        self.binary_reversed = {0: 'h', 1: 'g', 2: 'f', 3: 'e', 4: 'd', 5: 'c', 6: 'b', 7: 'a'}
+        self.binary = {"a":0,"b":1,"c":2,"d":3, "e":4, "f":5, "g":6, "h":7}
+        self.binary_reversed = {7: 'h', 6: 'g', 5: 'f', 4: 'e', 3: 'd', 2: 'c', 1: 'b', 0: 'a'}
 
         self.master = master
         self.move_start=None
@@ -47,6 +47,7 @@ class chessboard(tk.Frame):
         self.ascii_board = np.zeros((8,8),dtype=str)
         self.FEN_extractor(FEN)
         self.board_background()
+        self.create_boarder()
 
         self.create_widgets()
 
@@ -105,6 +106,14 @@ class chessboard(tk.Frame):
             if i.ascii.lower() != "k":
                 i.update_legal_moves()
         
+    def create_boarder(self):
+        bottom_border = tk.Frame(self,bg=self.colour_scheme["black"],width=(800),height=self.border_width)
+        top_border = tk.Frame(self,bg=self.colour_scheme["black"],height=(800),width=self.border_width)
+        for i in range(1,9):
+            tk.Label(bottom_border,text=str(9-i), font = ("arial",15),fg=self.colour_scheme["white"],bg=self.colour_scheme["black"],pady=34).grid(column=0,row=(i-1),columnspan=1)
+            tk.Label(top_border,text=self.binary_reversed[i-1], font = ("arial",15),fg=self.colour_scheme["white"],bg=self.colour_scheme["black"],padx=41).grid(column=(i-1),row=0)
+        top_border.place(rely =((800+1.5*self.border_width)/(800+2*self.border_width)), relx = 0.5,anchor="center", bordermode="ignore")
+        bottom_border.place(relx =((0.5*self.border_width)/(800+2*self.border_width)), rely = 0.5,anchor="center", bordermode="ignore")
 
     #creates a 8*8 grid of coloured squares to serve as the board being played on
     def board_background(self):
@@ -169,6 +178,7 @@ class chessboard(tk.Frame):
             self.recent_moves.push(move) # this is very ugly should be fixed
             self.move_stored = True
             #self.recent_moves.peak()
+            #print(self.recent_moves)
         
         
         
@@ -218,7 +228,8 @@ class chessboard(tk.Frame):
     def convert_to_binary(self,move):
         if (move == [200,100]).all(0).any():
             return "-"
-        return self.binary_reversed[move[0]] + str(move[1]+1)
+        print(move)
+        return self.binary_reversed[move[1]] + str(8-move[0])
         
     
 

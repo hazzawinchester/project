@@ -15,13 +15,12 @@ def create_board(layout="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 
 
 window = tk.Tk()
 window.title("Chess")
-window.geometry("1000x1000")
+window.geometry("875x875")
 window.configure(bg="#4b4b4b")
 
-create_board(piece_type="ascii") # 0.04 per iteration
+create_board(piece_type="ascii")
     
 
 window.mainloop() 
 
 
-#PAWNS CAN EN PASSENT THEMSEVLES

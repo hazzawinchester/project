@@ -14,40 +14,20 @@ bishop  011    3
 knight  010    2
 pawn    001    1
 
-
-
-12345678901234567890123456
-
 move types:
-quiet moves             0000    0  a move which doesn't alter matarial
-double pawn push        0001    1
-king castle             0010    2
-queen castle            0011    3
-captures                0100    4
-ep-capture              0101    5       y
-knight-promotion        1000    8       y
-bishop-promotion        1001    9       y
-rook-promotion          1010    10      y
-queen-promotion         1011    11      y
-knight-promo capture    1100    12      y
-bishop-promo capture    1101    13      y
-rook-promo capture      1110    14      y
-queen-promo capture     1111    15      y
-
-
-quiet moves                 0
-double pawn push            1
-king castle                 2
-queen castle                3
-captures                    4
-ep-capture                  5
-knight-promotion            8
-bishop-promotion            9
-rook-promotion              10
-queen-promotion             11
-knight-promo capture        12
-bishop-promo capture        13
-rook-promo capture          14
-queen-promo capture         15
+quiet moves             0000    0       %  a move which doesn't alter matarial
+double pawn push        0001    1       %
+king castle             0010    2       >
+queen castle            0011    3       >
+captures                0100    4       %
+ep-capture              0101    5       %
+knight-promotion        1000    8       %
+bishop-promotion        1001    9       %
+rook-promotion          1010    10      %
+queen-promotion         1011    11      %
+knight-promo capture    1100    12      %
+bishop-promo capture    1101    13      %
+rook-promo capture      1110    14      %
+queen-promo capture     1111    15      %
 
 
