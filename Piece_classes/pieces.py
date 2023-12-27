@@ -18,10 +18,17 @@ values = {"p":100,"n":305,"b":333,"r":563,"q":950,"k":0,'':0}
 class Piece(tk.Label):
     def __init__(self,master,piece,row,col,piece_type):
         # '' is used to hold an empty sqaure
-
+        
+        #types: ascii,secret,hidden,periodic,classic
         if piece != '':
             if piece_type == "ascii":   
                 super().__init__(master,text = pieces[piece], font= ["arial",50], borderwidth=0,bg=master.colour_scheme["white"] if (row+col)%2==0 else master.colour_scheme["black"])
+                if piece.isupper():
+                    self.colour = "w"
+                else:
+                    self.colour = "b"
+            elif piece_type == "secret":   
+                super().__init__(master,text = '    ', font= ["arial",35], borderwidth=0,bg=master.colour_scheme["white"] if (row+col)%2==0 else master.colour_scheme["black"])
                 if piece.isupper():
                     self.colour = "w"
                 else:
@@ -30,12 +37,11 @@ class Piece(tk.Label):
             elif piece_type == "hidden":
                 if piece.isupper():
                     # fetches the white image corelating to the piece
-                    self.img = Image.open(f"Pieces_img/{piece_type}/{piece_type}.{file_type[piece_type]}")
                     self.colour ="w"
                 else: 
                     #fetches the black image corelating to the piece
-                    self.img = Image.open(f"Pieces_img/{piece_type}/{piece_type}.{file_type[piece_type]}")
                     self.colour = "b"
+                self.img = Image.open(f"Pieces_img/{piece_type}/{piece_type}.{file_type[piece_type]}")
                 self.img = self.img.resize((75, 75))
                 self.img = ImageTk.PhotoImage(self.img)
                 super().__init__(master,borderwidth=0,image=self.img,bg="gray")

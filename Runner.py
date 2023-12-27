@@ -15,10 +15,11 @@ def create_board(layout="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 
 
 window = tk.Tk()
 window.title("Chess")
-window.geometry("850x850")
-window.configure(bg="#2b2b2b")
+window.geometry("1000x1000")
+window.configure(bg="#4b4b4b")
 
-create_board(piece_type="periodic") # 0.04 per iteration
+create_board(piece_type="ascii") # 0.04 per iteration
+    
 
 window.mainloop() 
 

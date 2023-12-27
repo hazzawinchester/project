@@ -25,12 +25,14 @@ class Drag_handler():
         #documents the starting point of the piece so it can be returned if the move is invalid
         self.start_row,self.start_col = self.get_cursor_pos(event)
         
-        #if event.widget.colour == self.master.active_colour:
-        if True:
-            for i in event.widget.legal_moves:
-                row,col = i
-                for a in self.master.grid_slaves(row =row,column =col):
-                    a.config(bg=("#"+hex(int(int(self.master.colour_scheme["white"][1:],16) *0.5)%16777216).lstrip("0x")) if (row+col)%2==0 else ("#"+hex(int(int(self.master.colour_scheme["black"][1:],16)*0.5)%16777216).lstrip("0x")))
+        if event.widget.colour == self.master.active_colour :#and self.master.piece_type != "hidden"
+            if self.master.piece_type in ["ascii","secret"]:
+                event.widget.config(bg="#4b4b4b")
+            if self.master.piece_type != "secret":
+                for i in event.widget.legal_moves:
+                    row,col = i
+                    for a in self.master.grid_slaves(row =row,column =col):
+                        a.config(bg=("#"+hex(int(int(self.master.colour_scheme["white"][1:],16) *0.5)%16777216).lstrip("0x")) if (row+col)%2==0 else ("#"+hex(int(int(self.master.colour_scheme["black"][1:],16)*0.5)%16777216).lstrip("0x")))
         
     def on_drag(self, event):
         #makes the piece follow beneath the position of the mouse on the screen by redrawing every time it moves
@@ -44,12 +46,16 @@ class Drag_handler():
         move = np.array([row,col])
         piece = event.widget    
 
+        #if  self.master.piece_type != "hidden":
         for i in piece.legal_moves:
             temp_row,temp_col = i
             for a in self.master.grid_slaves(row =temp_row,column =temp_col):
                 a.config(bg= self.master.colour_scheme["white"] if (temp_row+temp_col)%2==0 else self.master.colour_scheme["black"])
 
         if (piece.legal_moves == move).all(1).any() and self.master.active_colour == piece.colour:
+            
+            if self.master.piece_type in ["ascii","secret"]:
+                piece.config(bg= self.master.colour_scheme["white"] if (row+col)%2==0 else self.master.colour_scheme["black"])
             
             self.master.move_stored = False
             
@@ -114,7 +120,9 @@ class Drag_handler():
                 
         else:
             piece.grid(row=self.start_row,column=self.start_col)
-        print(time.time()-s)
+            if self.master.piece_type in ["ascii","secret"]:
+                piece.config(bg= self.master.colour_scheme["white"] if (self.start_row+self.start_col)%2==0 else self.master.colour_scheme["black"])
+        #print(time.time()-s)
                 
     def update_structs(self,piece,move):
         row,col = move

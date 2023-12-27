@@ -168,9 +168,7 @@ class chessboard(tk.Frame):
             move =(convert[captured] << 20) + (convert[piece] <<16)+(((start[0]*8) + start[1]) <<10)+(((end[0]*8) + end[1]<<4)) +move_types[type]
             self.recent_moves.push(move) # this is very ugly should be fixed
             self.move_stored = True
-            self.recent_moves.peak()
-        else:
-            print("oh no no")
+            #self.recent_moves.peak()
         
         
         
