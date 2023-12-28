@@ -72,7 +72,7 @@ class Piece(tk.Label):
         self.pos = [row,col]
         self.ascii = piece
         self.value = values[piece.lower() if piece != '' else '']
-        self.has_moved = False
+        self.has_moved = 0
         self.legal_moves = [[100,100]]
         self.ghost_moves = [[100,100]]
         

@@ -1,20 +1,17 @@
 import tkinter as tk
 import numpy as np
-from Piece_classes import pieces as p
 import Drag_handler as dh
-from Piece_classes import Pawn,Bishop,Knight,Rook,Queen,King
+from Piece_classes import pieces,Pawn,Bishop,Knight,Rook,Queen,King
 from Stack import Stack 
 
 
 
-#rows ={7:"a",6:"b",5:"c",4:"d",3:"e",2:"f",1:"g",0:"h"}
-# allows to translate between the ascii and aplhabetical represntation of each piece
 
 binary = {"a":7,"b":6,"c":5,"d":4, "e":3, "f":2, "g":1, "h":0}
 
 # board class which will be used to create a chessboard from a given FEN string, is a child of tk.frame so it can contain the gui function of the board
 class chessboard(tk.Frame):
-    def __init__(self, master=None,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",piece_type="classic", game_type="2p", colour_scheme=["#e2bd8d","#421e00"], border_width = 35):
+    def __init__(self, master=None,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",stack=[],piece_type="classic", game_type="2p", colour_scheme=["#e2bd8d","#421e00"], border_width = 35):
         super().__init__(master,borderwidth=border_width, bg=colour_scheme[1])
         self.pieces = {'p':"♟",'n':"♞",'b':"♝",'r':"♜",'q':"♛",'k':"♚", "P":"♙", "N":"♘", "B":"♗", "R":"♖", "Q":"♕", "K":"♔"}
         self.pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '♚': 'k', '♙': 'P', '♘': 'N', '♗': 'B', '♖': 'R', '♕': 'Q', '♔': 'K'}
@@ -30,6 +27,7 @@ class chessboard(tk.Frame):
     
         self.border_width =border_width
         self.recent_moves = Stack()
+        {self.recent_moves.push(i) for i in stack}
 
         white = colour_scheme[0]
         black =colour_scheme[1]
@@ -42,12 +40,14 @@ class chessboard(tk.Frame):
         self.white_king = None   
 
         self.dnd = dh.Drag_handler()
+        self.old_passent = [200,100]
 
         
         self.ascii_board = np.zeros((8,8),dtype=str)
         self.FEN_extractor(FEN)
         self.board_background()
         self.create_boarder()
+        self.create_backbutton()
 
         self.create_widgets()
 
@@ -67,7 +67,7 @@ class chessboard(tk.Frame):
         return f"{self.convert_into_fen()}"
     
     def destroy(self):
-        print(self.convert_into_fen())
+        print(self.convert_into_fen(),self.recent_moves)
         super().destroy()
         
     def create_widgets(self):
@@ -75,7 +75,7 @@ class chessboard(tk.Frame):
             for col in range(8):
                 temp = self.ascii_board[row][col]
                 if temp == '':
-                    piece = p.Piece(self,temp,row,col,self.piece_type)
+                    piece = pieces.Piece(self,temp,row,col,self.piece_type)
                 else:
                     if temp.lower() == "p":
                         piece = Pawn.Pawn(self,temp,row,col,self.piece_type)
@@ -101,7 +101,6 @@ class chessboard(tk.Frame):
                 self.dnd.add_dragable(piece)
     
     def set_all_piece_moves(self):
-        save=[]
         for i in self.piece_list:
             if i.ascii.lower() != "k":
                 i.update_legal_moves()
@@ -114,6 +113,9 @@ class chessboard(tk.Frame):
             tk.Label(top_border,text=self.binary_reversed[i-1], font = ("arial",15),fg=self.colour_scheme["white"],bg=self.colour_scheme["black"],padx=41).grid(column=(i-1),row=0)
         top_border.place(rely =((800+1.5*self.border_width)/(800+2*self.border_width)), relx = 0.5,anchor="center", bordermode="ignore")
         bottom_border.place(relx =((0.5*self.border_width)/(800+2*self.border_width)), rely = 0.5,anchor="center", bordermode="ignore")
+        
+    def create_backbutton(self): #symbol is just a placeholder
+        tk.Button(self, text="⬅️",font =("arial",13),fg = self.colour_scheme["white"],bg = self.colour_scheme["black"],borderwidth=0, command=self.reverse_move).place(relx =0, rely =1,anchor="sw", bordermode="ignore")
 
     #creates a 8*8 grid of coloured squares to serve as the board being played on
     def board_background(self):
@@ -165,10 +167,7 @@ class chessboard(tk.Frame):
                         self.white_can_take = np.unique(np.concatenate((self.white_can_take,i.ghost_moves[-2:]),axis=0),axis=0)
                 else:
                     self.white_can_take = np.unique(np.concatenate((self.white_can_take,i.ghost_moves),axis=0),axis=0)
-
-
-
-
+                    
     #converts the move into a unique integer that is added to the stack so it can be reversed at any time
     def store_move(self,start,end,piece,type="quiet",captured="-"):
         if not self.move_stored:
@@ -177,19 +176,46 @@ class chessboard(tk.Frame):
             move =(convert[captured] << 20) + (convert[piece] <<16)+(((start[0]*8) + start[1]) <<10)+(((end[0]*8) + end[1]<<4)) +move_types[type]
             self.recent_moves.push(move) # this is very ugly should be fixed
             self.move_stored = True
-            #self.recent_moves.peak()
+            
+            #print(self.recent_moves.peak())
             #print(self.recent_moves)
-        
-        
-        
-        
-        
     
     def reverse_move(self): # NEEDS TO BE IMPLIMENTED
+        pieces = {1: "p", 2: 'n', 3: 'b', 5: 'r', 6: 'q', 4: 'k', 9: 'P', 10: 'N', 11: 'B', 13: 'R', 14: 'Q', 12: 'K', 0: 'nothing'}
+        types = {0: 'quiet', 1: 'double', 2: 'king-side', 3: 'queen-side', 4: 'capture', 5: 'ep-capture', 8: 'n-promo', 9: 'b-promo', 10: 'r-promo', 11: 'q-promo', 12: 'n-promo-capture', 13: 'b-promo-capture', 14: 'r-promo-capture', 15: 'q-promo-capture'}
+        
         move = self.recent_moves.pop()
-        print(move)
-        pass
-    
+        if move:
+            out = str(bin(move)[2:].zfill(24))
+            breakdown = [pieces[int(out[:4],2)], pieces[int(out[4:8],2)], [(int(out[8:11],2)),(int(out[11:14],2))], [(int(out[14:17],2)),(int(out[17:20],2))],types[int(out[20:],2)]]
+            
+            erow,ecol = breakdown[2]
+            srow,scol = breakdown[3]
+            if breakdown[-1] in ["quiet","double","capture","ep-capture"]:
+                piece = self.board[srow,scol]
+                
+                self.board[erow,ecol].destroy()
+                self.board[erow,ecol] = piece
+                self.ascii_board[erow,ecol] = piece.ascii
+                piece.grid(row=erow,column=ecol)
+                piece.lift()
+                piece.pos =[erow,ecol]
+                      
+                piece.has_moved -= 1
+                self.half_move -= 1
+                
+                if self.half_move % 2 == 0:
+                    self.active_colour = "b"
+                else:
+                    self.active_colour ="w"
+                    self.full_move -= 1
+                
+                self.en_passent = self.old_passent
+                self.old_passent = [200,100]
+                self.replace_piece(breakdown[0].lower() if breakdown[0] != "nothing" else "",tk.Label(self),[srow,scol])
+                piece.update_legal_moves()
+                self.dnd.update_affected_pieces(breakdown[2],breakdown[3])
+        
     def FEN_extractor(self,fen):
         fen = fen.split(" ")
         self.make_array_of_pieces(fen[0])
@@ -226,9 +252,8 @@ class chessboard(tk.Frame):
         return [int(move[1])-1,self.binary[move[0]]]
     
     def convert_to_binary(self,move):
-        if (move == [200,100]).all(0).any():
+        if (move == np.array([200,100])).any():
             return "-"
-        print(move)
         return self.binary_reversed[move[1]] + str(8-move[0])
         
     
@@ -254,24 +279,31 @@ class chessboard(tk.Frame):
         tk.Button(container, bg= self.colour_scheme["white"], text="♞", font=["arial",15], command= lambda:[ self.replace_piece("n",container,[row,col]), self.store_move(start,[row,col],piece.ascii,"n-"+move_type,captured)]).grid(row=1,column=1, sticky= "nesw")
 
         # places a piece in the position of the pawn and corrects all the data structures to refelct this
+
+
     def replace_piece(self,p,container,pos):
         
         self.move_stored = False # essential as otherwise the program runs too fast in the drag handler and treats it as just a normal capture
         
         row,col = pos
-        if row == 0:
+        if self.half_move %2 ==1:
             piece_ascii = p.upper()
         else:
             piece_ascii = p
 
-        if p == "q":
+        if p == "p":
+            piece = Pawn.Pawn(self,piece_ascii,row,col,self.piece_type)
+        elif p == "":
+            piece = pieces.Piece(self,'',row,col,piece_type='')
+        elif p == "q":
             piece = Queen.Queen(self,piece_ascii,row,col,self.piece_type)
         elif p == "r":
             piece = Rook.Rook(self,piece_ascii,row,col,self.piece_type)
         elif p == "n":
             piece = Knight.Knight(self,piece_ascii,row,col,self.piece_type)
         elif p == "b":
-            piece = Bishop.Bishop(self,piece_ascii,row,col,self.piece_type)   
+            piece = Bishop.Bishop(self,piece_ascii,row,col,self.piece_type)
+           
         
         self.ascii_board[row,col] = piece_ascii
         self.board[row,col] = piece
@@ -289,9 +321,8 @@ class chessboard(tk.Frame):
 
         container.destroy()
 
-        self.active_colour = "w" if row ==7 else "b"
-
-
+        self.active_colour = "w" if self.half_move %2 ==0 else "b"
+        
 
 
     

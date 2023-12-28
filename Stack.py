@@ -6,10 +6,10 @@ class Stack:
 
     def __str__(self):
         temp = []
-        for i in self.data:
+        #for i in self.data:
             #temp.append(self.convert_to_algebraic(i))
-            temp.append(bin(i)[2:].zfill(24))
-        #temp = self.data
+            #temp.append(bin(i)[2:].zfill(24))
+        temp = self.data
         return f"{temp}"
 
     def push(self,item):
@@ -19,8 +19,8 @@ class Stack:
         if not self.is_empty():
             out = self.data[-1]
             self.data = self.data[:-1]
-            return self.convert_to_algebraic(out)
-        print("the stack is empty")
+            return out
+        return False
     
     def peak(self):
         pieces = {1: "p", 2: 'n', 3: 'b', 5: 'r', 6: 'q', 4: 'k', 9: 'P', 10: 'N', 11: 'B', 13: 'R', 14: 'Q', 12: 'K', 0: 'nothing'}
@@ -29,12 +29,12 @@ class Stack:
         
         out = str(bin(self.data[-1])[2:].zfill(24))
         sentence = pieces[int(out[:4],2)]+" was captured by "+ pieces[int(out[4:8],2)]+ " moving from "+ binary_reversed[(int(out[11:14],2))]+str(8-(int(out[8:11],2)))+ " to "+ binary_reversed[(int(out[17:20],2))]+str(8-(int(out[14:17],2)))+ " as " +types[int(out[20:],2)]
-        print(sentence)
+        return sentence
         
         
     def is_empty(self):
-        return self.data == []
-        
+        return len(self.data) == 0
+    
     def convert_to_algebraic(self,move):
         binary_reversed = {7: 'h', 6: 'g', 5: 'f', 4: 'e', 3: 'd', 2: 'c', 1: 'b', 0: 'a'}
         pieces = {1: '', 2: 'n', 3: 'b', 5: 'r', 6: 'q', 4: 'k', 9: '', 10: 'N', 11: 'B', 13: 'R', 14: 'Q', 12: 'K', 0: '-'}

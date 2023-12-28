@@ -1,11 +1,11 @@
 from Piece_classes import pieces as parent
-from numpy import append
+from numpy import append,array
 
 
 class Pawn(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)
-        self.has_moved = False
+        self.has_moved = 0
 
     def update_legal_moves(self): 
         self.legal_moves = [[100,100]]
@@ -37,11 +37,11 @@ class Pawn(parent.Piece):
     def check_take(self,board,row,col):
         left,right = col-1,col+1
         if col>=1:
-            if not board[row,left].colour in (None,self.colour) or ([row,left] == self.master.en_passent).all():
+            if not board[row,left].colour in (None,self.colour) or (array([row,left]) == self.master.en_passent).all():
                 self.legal_moves = append(self.legal_moves,[[row,left]], axis=0)
             self.ghost_moves = append(self.ghost_moves,[[row,left]], axis=0)
         if col <=6:
-            if not board[row,right].colour in (None,self.colour) or ([row,right] == self.master.en_passent).all():
+            if not board[row,right].colour in (None,self.colour) or (array([row,right]) == self.master.en_passent).all():
                 self.legal_moves = append(self.legal_moves,[[row,right]], axis=0)
             self.ghost_moves = append(self.ghost_moves,[[row,right]], axis=0)
 
