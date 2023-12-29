@@ -61,7 +61,10 @@ class Drag_handler():
             
             if self.master.ascii_board[row,col] != '':
                 move_type = "capture"
-                captured_piece = self.master.ascii_board[row,col]
+                captured = self.master.board[row,col]
+                self.master.captured_pieces.push(captured)
+                captured_piece= captured.ascii
+                
             else:
                 move_type = "quiet"
                 captured_piece = '-'
@@ -77,12 +80,12 @@ class Drag_handler():
                     r,c = move
 
                     if self.master.half_move % 2 == 1:
-                        self.master.board[r-1,c].destroy()
+                        self.master.board[r-1,c].grid_remove()
                         self.master.board[r-1,c] = p.Piece(self.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
                         self.update_passented(event,[r-1,c])
                         self.master.store_move([self.start_row,self.start_col],move,"p","ep-capture","P")
                     else:
-                        self.master.board[r+1,c].destroy()
+                        self.master.board[r+1,c].grid_remove()
                         self.master.board[r+1,c] = p.Piece(self.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
                         self.update_passented(event,[r+1,c])
                         self.master.store_move([self.start_row,self.start_col],move,"P","ep-capture","p")
@@ -126,7 +129,7 @@ class Drag_handler():
                 
     def update_structs(self,piece,move):
         row,col = move
-        self.master.grid_slaves(row,col)[0].destroy()
+        self.master.grid_slaves(row,col)[0].destroy() if self.master.grid_slaves(row,col)[0].ascii == "" else self.master.grid_slaves(row,col)[0].grid_remove()
         
         self.master.board[row,col] = piece
         self.master.ascii_board[row,col] = piece.ascii

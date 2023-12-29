@@ -27,6 +27,7 @@ class chessboard(tk.Frame):
     
         self.border_width =border_width
         self.recent_moves = Stack()
+        self.captured_pieces = Stack()
         {self.recent_moves.push(i) for i in stack}
 
         white = colour_scheme[0]
@@ -183,7 +184,7 @@ class chessboard(tk.Frame):
     def reverse_move(self): # NEEDS TO BE IMPLIMENTED
         pieces = {1: "p", 2: 'n', 3: 'b', 5: 'r', 6: 'q', 4: 'k', 9: 'P', 10: 'N', 11: 'B', 13: 'R', 14: 'Q', 12: 'K', 0: 'nothing'}
         types = {0: 'quiet', 1: 'double', 2: 'king-side', 3: 'queen-side', 4: 'capture', 5: 'ep-capture', 8: 'n-promo', 9: 'b-promo', 10: 'r-promo', 11: 'q-promo', 12: 'n-promo-capture', 13: 'b-promo-capture', 14: 'r-promo-capture', 15: 'q-promo-capture'}
-        
+
         move = self.recent_moves.pop()
         if move:
             out = str(bin(move)[2:].zfill(24))
@@ -200,19 +201,31 @@ class chessboard(tk.Frame):
                 piece.grid(row=erow,column=ecol)
                 piece.lift()
                 piece.pos =[erow,ecol]
+                if self.piece_type in ["ascii","secret"]:
+                    piece.config(bg= self.colour_scheme["white"] if (erow+ecol)%2==0 else self.colour_scheme["black"])
                       
                 piece.has_moved -= 1
                 self.half_move -= 1
                 
-                if self.half_move % 2 == 0:
-                    self.active_colour = "b"
-                else:
-                    self.active_colour ="w"
-                    self.full_move -= 1
-                
                 self.en_passent = self.old_passent
                 self.old_passent = [200,100]
-                self.replace_piece(breakdown[0].lower() if breakdown[0] != "nothing" else "",tk.Label(self),[srow,scol])
+                if breakdown[0] == "nothing":
+                    self.replace_piece("",tk.Label(self),[srow,scol])
+                else:
+                    cap = self.captured_pieces.pop()
+                
+                    self.board[srow,scol] = cap
+                    self.ascii_board[srow,scol] = cap.ascii
+                    cap.grid(row=srow,column=scol)
+                    cap.lift()
+                    
+                    #cap.update_legal_moves()
+                if self.half_move % 2 == 0:
+                    self.active_colour = "w"
+                else:
+                    self.active_colour ="b"
+                    self.full_move -= 1
+
                 piece.update_legal_moves()
                 self.dnd.update_affected_pieces(breakdown[2],breakdown[3])
         

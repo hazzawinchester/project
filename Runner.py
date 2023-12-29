@@ -18,8 +18,8 @@ window.title("Chess")
 window.geometry("870x870")
 window.configure(bg="#4b4b4b")
 
-create_board(piece_type="periodic")
-    
+create_board(piece_type="ascii")
+
 
 window.mainloop() 
 

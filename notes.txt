@@ -13,6 +13,7 @@ rook    101    5
 bishop  011    3
 knight  010    2
 pawn    001    1
+nothing 000    0
 
 move types:
 quiet moves             0000    0       %  a move which doesn't alter matarial

@@ -34,6 +34,9 @@ class Stack:
         
     def is_empty(self):
         return len(self.data) == 0
+
+    def length(self):
+        return len(self.data)
     
     def convert_to_algebraic(self,move):
         binary_reversed = {7: 'h', 6: 'g', 5: 'f', 4: 'e', 3: 'd', 2: 'c', 1: 'b', 0: 'a'}
