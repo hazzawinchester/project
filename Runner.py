@@ -1,26 +1,18 @@
-import tkinter as tk
-import board
+from GUI_pages import master,home,play,settings,variants,sign_in
 
 import time
 
 
-# runner that collects all GUI elements to assembel them into the software
-def create_board(layout="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",stack=[], piece_type="classic", game_type="p", colour_scheme=["#e2bd8d","#421e00"]):#"#e2bd8d","#421e00"
-    global chessboard
-    chessboard = board.chessboard(window,layout,stack,piece_type,game_type,colour_scheme)
+# runner that collects all GUI elements to assembles them into the interface
+window = master.Window()
 
-    #centers chesboard in the root window
-    chessboard.place(relx=0.5,rely=0.5, anchor="center")
+window.add_frame(home.Home_page(window),"Home")
+window.add_frame(play.Chess_game(window,"ascii"),"Play")
+window.add_frame(variants.Variants_page(window),"Variants")
+window.add_frame(settings.Settings_page(window),"Settings")
+window.add_frame(sign_in.Sign_in_page(window),"Sign in")
 
 
-window = tk.Tk()
-window.title("Chess")
-window.geometry("870x870")
-window.configure(bg="#4b4b4b")
-
-create_board(piece_type="ascii")
-
+window.show_frame("Home")
 
 window.mainloop() 
-
-

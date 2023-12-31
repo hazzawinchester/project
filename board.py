@@ -68,8 +68,9 @@ class chessboard(tk.Frame):
         return f"{self.convert_into_fen()}"
     
     def destroy(self):
-        print(self.convert_into_fen(),self.recent_moves)
         super().destroy()
+        return self.convert_into_fen(),self.recent_moves
+
         
     def create_widgets(self):
         for row in range(8):
@@ -107,13 +108,14 @@ class chessboard(tk.Frame):
                 i.update_legal_moves()
         
     def create_boarder(self):
+        side_border = tk.Frame(self,bg=self.colour_scheme["black"],height=(800),width=self.border_width)
         bottom_border = tk.Frame(self,bg=self.colour_scheme["black"],width=(800),height=self.border_width)
-        top_border = tk.Frame(self,bg=self.colour_scheme["black"],height=(800),width=self.border_width)
+
         for i in range(1,9):
-            tk.Label(bottom_border,text=str(9-i), font = ("arial",15),fg=self.colour_scheme["white"],bg=self.colour_scheme["black"],pady=34).grid(column=0,row=(i-1),columnspan=1)
-            tk.Label(top_border,text=self.binary_reversed[i-1], font = ("arial",15),fg=self.colour_scheme["white"],bg=self.colour_scheme["black"],padx=41).grid(column=(i-1),row=0)
-        top_border.place(rely =((800+1.5*self.border_width)/(800+2*self.border_width)), relx = 0.5,anchor="center", bordermode="ignore")
-        bottom_border.place(relx =((0.5*self.border_width)/(800+2*self.border_width)), rely = 0.5,anchor="center", bordermode="ignore")
+            tk.Label(side_border,text=str(9-i), font = ("arial",15),fg=self.colour_scheme["white"],bg=self.colour_scheme["black"],pady=34).grid(column=0,row=(i-1),sticky="nesw")
+            tk.Label(bottom_border,text=self.binary_reversed[i-1], font = ("arial",15),fg=self.colour_scheme["white"],bg=self.colour_scheme["black"],padx=42).grid(column=(i-1),row=0,sticky="nesw")
+        bottom_border.place(rely =((800+1.5*self.border_width)/(800+2*self.border_width)), relx = 0.5,anchor="center", bordermode="ignore")
+        side_border.place(relx =((0.5*self.border_width)/(800+2*self.border_width)), rely = 0.5,anchor="center", bordermode="ignore")
         
     def create_backbutton(self): #symbol is just a placeholder
         tk.Button(self, text="⬅️",font =("arial",13),fg = self.colour_scheme["white"],bg = self.colour_scheme["black"],borderwidth=0, command=self.reverse_move).place(relx =0, rely =1,anchor="sw", bordermode="ignore")
