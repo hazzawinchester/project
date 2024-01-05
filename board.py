@@ -3,6 +3,7 @@ import numpy as np
 import Drag_handler as dh
 from Piece_classes import pieces,Pawn,Bishop,Knight,Rook,Queen,King
 from Stack import Stack 
+from gmpy2 import xmpz
 
 
 
@@ -41,7 +42,7 @@ class chessboard(tk.Frame):
         self.white_king = None   
 
         self.dnd = dh.Drag_handler()
-        self.old_passent = [200,100]
+        self.old_passent = xmpz(0)
 
         
         self.ascii_board = np.zeros((8,8),dtype=str)
@@ -55,15 +56,11 @@ class chessboard(tk.Frame):
         self.board  = np.array([[self.grid_slaves()[-(65+(8*a+i))] for i in range(8)] for a in range(8)])
         self.set_all_piece_moves()
         
-        self.white_can_take = [[100,100]]
-        self.black_can_take = [[100,100]]
         self.update_can_take("w")
         self.update_can_take("b")
         self.white_king.update_legal_moves()
         self.black_king.update_legal_moves()
-        
-        self.bind('<Return>', self.reverse_move)
-        
+                
     def __str__(self): 
         return f"{self.convert_into_fen()}"
     
@@ -146,30 +143,21 @@ class chessboard(tk.Frame):
                 self.ascii_board[i] = np.array(row)
 
     def update_can_take(self,colour):
+        column = 72340172838076673 # the numerical reprisentation of 1s down the left column of a 8x8 bitboard
         if colour == "b":
-            self.black_can_take = [[100,100]]
+            self.black_can_take = xmpz(0)
             for i in self.black_pieces:
-                if i.ascii == "k":
-                    self.black_can_take = np.unique(np.concatenate((self.black_can_take,i.ghost_moves),axis=0),axis=0)
                 if i.ascii == "p":
-                    if i.pos[1] in [0,7]:
-                        self.black_can_take = np.unique(np.concatenate((self.black_can_take,i.ghost_moves[-1:]),axis=0),axis=0)
-                    else:
-                        self.black_can_take = np.unique(np.concatenate((self.black_can_take,i.ghost_moves[-2:]),axis=0),axis=0)
-                else:
-                    self.black_can_take = np.unique(np.concatenate((self.black_can_take,i.ghost_moves),axis=0),axis=0)
+                    self.black_can_take |= (((column << i.pos[1]) ^ ((2**64)-1)) & i.ghost_moves) # makes a mask with 0s int the column where the pawn is in order to make sure non capture moves arents added
+                elif i.ascii !="k":
+                    self.black_can_take |= i.ghost_moves
         else:
-            self.white_can_take = [[100,100]]
+            self.white_can_take = xmpz(0)
             for i in self.white_pieces:
-                if i.ascii == "K":
-                    self.white_can_take = np.unique(np.concatenate((self.white_can_take,i.ghost_moves),axis=0),axis=0)
-                elif i.ascii == "P":
-                    if i.pos[1] in [0,7]:
-                        self.white_can_take = np.unique(np.concatenate((self.white_can_take,i.ghost_moves[-1:]),axis=0),axis=0)
-                    else:
-                        self.white_can_take = np.unique(np.concatenate((self.white_can_take,i.ghost_moves[-2:]),axis=0),axis=0)
-                else:
-                    self.white_can_take = np.unique(np.concatenate((self.white_can_take,i.ghost_moves),axis=0),axis=0)
+                if i.ascii == "P":
+                    self.white_can_take |= (((column << i.pos[1]) ^ ((2**64)-1)) & i.ghost_moves)
+                elif i.ascii !="K":
+                    self.white_can_take |= i.ghost_moves
                     
     #converts the move into a unique integer that is added to the stack so it can be reversed at any time
     def store_move(self,start,end,piece,type="quiet",captured="-"):
@@ -210,14 +198,16 @@ class chessboard(tk.Frame):
                 self.half_move -= 1
                 
                 self.en_passent = self.old_passent
-                self.old_passent = [200,100]
-                if breakdown[0] == "nothing":
+                self.old_passent = xmpz(0)
+                
+                if breakdown[0] == "nothing": # CHANGE TO ENCORPORTATE PROMOTE
                     self.replace_piece("",tk.Label(self),[srow,scol])
                 else:
                     cap = self.captured_pieces.pop()
                 
                     self.board[srow,scol] = cap
                     self.ascii_board[srow,scol] = cap.ascii
+                    cap.pos = srow,scol
                     cap.grid(row=srow,column=scol)
                     cap.lift()
                     
@@ -229,14 +219,14 @@ class chessboard(tk.Frame):
                     self.full_move -= 1
 
                 piece.update_legal_moves()
-                self.dnd.update_affected_pieces(breakdown[2],breakdown[3])
+                self.dnd.update_affected_pieces(2**(erow*8+ecol),2**(srow*8+scol))
         
     def FEN_extractor(self,fen):
         fen = fen.split(" ")
         self.make_array_of_pieces(fen[0])
         self.active_colour = fen[1]
         self.avaiable_castle = fen[2]
-        self.en_passent = np.array(self.convert_from_binary(fen[3]))
+        self.en_passent = xmpz(self.convert_from_binary(fen[3]))
         self.half_move = int(fen[4])
         self.full_move = int(fen[5])
 
@@ -263,8 +253,8 @@ class chessboard(tk.Frame):
     
     def convert_from_binary(self,move):
         if move == '-':
-            return [200,100]
-        return [int(move[1])-1,self.binary[move[0]]]
+            return 0
+        return 2**((int(move[1])-1)*8+ self.binary[move[0]])
     
     def convert_to_binary(self,move):
         if (move == np.array([200,100])).any():
@@ -272,7 +262,8 @@ class chessboard(tk.Frame):
         return self.binary_reversed[move[1]] + str(8-move[0])
         
     
-
+    
+    
     
 # once a pawn has reached the last rank it is deleted and the user is offered 4 options between for which piece they would like to promote to 
     def promote(self,piece,start,move_type=None,captured="-"):
@@ -283,7 +274,7 @@ class chessboard(tk.Frame):
         container.grid_rowconfigure(row, minsize=2)
 
         container.grid(row=row,column=col)
-
+        self.captured_pieces.push(piece)
         piece.destroy()
 
         self.active_colour = None

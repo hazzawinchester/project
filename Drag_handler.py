@@ -2,6 +2,7 @@ from Piece_classes import pieces as p
 import numpy as np
 import tkinter as tk
 import time
+from gmpy2 import xmpz
 
 pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '♚': 'k', '♙': 'P', '♘': 'N', '♗': 'B', '♖': 'R', '♕': 'Q', '♔': 'K'}
 
@@ -25,14 +26,20 @@ class Drag_handler():
         #documents the starting point of the piece so it can be returned if the move is invalid
         self.start_row,self.start_col = self.get_cursor_pos(event)
         
-        if event.widget.colour == self.master.active_colour :#and self.master.piece_type != "hidden"
-            if self.master.piece_type in ["ascii","secret"]:
-                event.widget.config(bg="#ccff99")
-            if self.master.piece_type != "secret":
-                for i in event.widget.legal_moves:
-                    row,col = i
-                    for a in self.master.grid_slaves(row =row,column =col):
-                        a.config(bg=("#"+hex(int(int(self.master.colour_scheme["white"][1:],16) *0.5)%16777216).lstrip("0x")) if (row+col)%2==0 else ("#"+hex(int(int(self.master.colour_scheme["black"][1:],16)*0.5)%16777216).lstrip("0x")))
+        
+        
+        
+        # if event.widget.colour == self.master.active_colour :#and self.master.piece_type != "hidden"
+        #     if self.master.piece_type in ["ascii","secret"]:
+        #         event.widget.config(bg="#ccff99")
+        #     if self.master.piece_type != "secret":
+        #         for i in event.widget.legal_moves:
+        #             row,col = i
+        #             for a in self.master.grid_slaves(row =row,column =col):
+        #                 a.config(bg=("#"+hex(int(int(self.master.colour_scheme["white"][1:],16) *0.5)%16777216).lstrip("0x")) if (row+col)%2==0 else ("#"+hex(int(int(self.master.colour_scheme["black"][1:],16)*0.5)%16777216).lstrip("0x")))
+        
+        
+        
         
     def on_drag(self, event):
         #makes the piece follow beneath the position of the mouse on the screen by redrawing every time it moves
@@ -40,19 +47,22 @@ class Drag_handler():
         event.widget.lift()
 
     def on_drop(self, event):
-        s = time.time()
+        #s = time.time()
         #locks the widget into the nearst gird space or retruns it to the starting point if it is invalid
         row,col = self.get_cursor_pos(event)
-        move = np.array([row,col])
-        piece = event.widget    
+        move = 2**(row*8+col)
+        piece = event.widget 
 
         #if  self.master.piece_type != "hidden":
-        for i in piece.legal_moves:
-            temp_row,temp_col = i
-            for a in self.master.grid_slaves(row =temp_row,column =temp_col):
-                a.config(bg= self.master.colour_scheme["white"] if (temp_row+temp_col)%2==0 else self.master.colour_scheme["black"])
+        # for i in piece.legal_moves:
+        #     temp_row,temp_col = i
+        #     for a in self.master.grid_slaves(row =temp_row,column =temp_col):
+        #         a.config(bg= self.master.colour_scheme["white"] if (temp_row+temp_col)%2==0 else self.master.colour_scheme["black"])
 
-        if (piece.legal_moves == move).all(1).any() and self.master.active_colour == piece.colour:
+
+
+
+        if  (move & piece.legal_moves) and self.master.active_colour == piece.colour: #(piece.legal_moves == move).all(1).any()
             
             if self.master.piece_type in ["ascii","secret"]:
                 piece.config(bg= self.master.colour_scheme["white"] if (row+col)%2==0 else self.master.colour_scheme["black"])
@@ -70,56 +80,63 @@ class Drag_handler():
                 captured_piece = '-'
                 
             # updating the relevant data structures and gui
-            self.update_structs(piece,move)
+            self.update_structs(piece,[row,col])
             
             #self.get_material_diff(event)
             
             #promotion check
             if piece.ascii.lower() == "p":
-                if (move == self.master.en_passent).all():
-                    r,c = move
+                if (move & self.master.en_passent):
+                    r,c = row,col
 
                     if self.master.half_move % 2 == 1:
                         self.master.board[r-1,c].grid_remove()
                         self.master.board[r-1,c] = p.Piece(self.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
-                        self.update_passented(event,[r-1,c])
-                        self.master.store_move([self.start_row,self.start_col],move,"p","ep-capture","P")
+                        self.update_passented(event,2**((row-1)*8+col))
+                        self.master.store_move([self.start_row,self.start_col],[row,col],"p","ep-capture","P")
                     else:
                         self.master.board[r+1,c].grid_remove()
                         self.master.board[r+1,c] = p.Piece(self.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
-                        self.update_passented(event,[r+1,c])
-                        self.master.store_move([self.start_row,self.start_col],move,"P","ep-capture","p")
-                elif not piece.has_moved and (move[0] in [self.start_row-2,self.start_row+2]):
+                        self.update_passented(event,2**((row+1)*8+col))
+                        self.master.store_move([self.start_row,self.start_col],[row,col],"P","ep-capture","p")
+                elif not piece.has_moved and (row in [self.start_row-2,self.start_row+2]):
                     self.master.old_passent = self.master.en_passent
-                    self.master.en_passent = np.array(piece.legal_moves[1])
-                    self.master.store_move([self.start_row,self.start_col],move,piece.ascii,"double",captured_piece)
+                    self.master.en_passent = xmpz(2**((row-1)*8+col) if self.master.half_move % 2 == 1 else 2**((row+1)*8+col) )
+                    self.master.store_move([self.start_row,self.start_col],[row,col],piece.ascii,"double",captured_piece)
                 else:
                     self.master.old_passent = self.master.en_passent
-                    self.master.en_passent = np.array([200,100])
-                    self.master.store_move([self.start_row,self.start_col],move,piece.ascii,move_type,captured_piece)
+                    self.master.en_passent = xmpz(0)
+                    self.master.store_move([self.start_row,self.start_col],[row,col],piece.ascii,move_type,captured_piece)
                     
                 if (piece.pos[0] == 0 or piece.pos[0] == 7):
                     self.master.promote(piece,[self.start_row,self.start_col],move_type= "promo" if move_type == "quiet" else "promo-capture",captured=captured_piece)
             else:
                 self.master.old_passent = self.master.en_passent
-                self.master.en_passent = np.array([200,100])
+                self.master.en_passent = xmpz(0)
                 if not self.master.move_stored:
-                    self.master.store_move([self.start_row,self.start_col],move,piece.ascii,move_type,captured_piece)
+                    self.master.store_move([self.start_row,self.start_col],[row,col],piece.ascii,move_type,captured_piece)
                 
             piece.has_moved +=1
             
             self.master.half_move += 1
-            #s = time.time()
-            #for i in range(10000):
-            self.update_affected_pieces([self.start_row,self.start_col],[row,col])
-            #print((time.time()-s)/10000)
+            s = time.time()
+            for i in range(10000):
+                self.update_affected_pieces(2**(self.start_row*8+self.start_col),2**(row*8+col))
+            print((time.time()-s)/10000)
 
             #turn controlling
             if self.master.half_move % 2 == 1:
                 self.master.active_colour = "b"
+                if (2**(self.master.white_king.pos[0]*8+self.master.white_king.pos[1])) & self.master.black_can_take:
+                    self.master.reverse_move()
             else:
                 self.master.active_colour ="w"
                 self.master.full_move += 1
+                if (2**(self.master.black_king.pos[0]*8+self.master.black_king.pos[1])) & self.master.white_can_take:
+                    self.master.reverse_move()
+                    pass
+                
+            
                 
         else:
             piece.grid(row=self.start_row,column=self.start_col)
@@ -144,10 +161,11 @@ class Drag_handler():
 
     def update_affected_pieces(self,start,end):
         for i in self.master.piece_list:
-            if (i.ghost_moves == np.array(start)).all(1).any() or (i.ghost_moves == np.array(end)).all(1).any():
+            if (start & i.ghost_moves) | (end & i.ghost_moves):   
                 i.update_legal_moves()
-            elif i.ascii.lower() == "p" and ((i.ghost_moves == self.master.en_passent).all(1).any() or (i.ghost_moves == self.master.old_passent).all(1).any()) and (i.colour != ("w" if self.master.half_move % 2 == 1 else "b")):
+            elif i.ascii.lower() == "p" and ((self.master.en_passent & i.ghost_moves) | (self.master.old_passent & i.ghost_moves)) and(i.colour != ("w" if self.master.half_move % 2 == 1 else "b")):
                 i.update_legal_moves()
+            
         
         self.master.update_can_take("w")
         self.master.update_can_take("b")
@@ -156,7 +174,7 @@ class Drag_handler():
     
     def update_passented(self,event,move):
         for i in event.widget.master.piece_list:
-            if (i.ghost_moves == np.array(move)).all(1).any():
+            if (i.ghost_moves & move):
                     i.update_legal_moves()
 
     def get_material_diff(self,event):

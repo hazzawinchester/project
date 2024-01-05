@@ -1,6 +1,7 @@
 from Piece_classes import pieces as parent
 import numpy as np
 import time
+from gmpy2 import xmpz
 
 
 class Rook(parent.Piece):
@@ -9,8 +10,8 @@ class Rook(parent.Piece):
 
 
     def update_legal_moves(self):  # 2.6*10^-6 per move max
-        self.legal_moves = [[100,100]]
-        self.ghost_moves = [[100,100]]
+        self.legal_moves = xmpz(0)
+        self.ghost_moves = xmpz(0)
         row,col = self.pos[0],self.pos[1]
         left,right,up,down,a = False,False,False,False,1
         while left==False or right==False or up==False or down==False:
@@ -38,11 +39,12 @@ class Rook(parent.Piece):
                 else:
                     down = True
             a+=1        
-        
+"""        
     def update_ghost_moves(self):
         self.ghost_moves = [[100,100]]
         row,col = self.pos
         self.ghost_moves=  np.append(self.ghost_moves,[(a,col) for a in range(8)], axis=0)
         self.ghost_moves=  np.append(self.ghost_moves,[(row,a) for a in range(8)], axis=0)
+        """
 
 

@@ -1,6 +1,7 @@
 from Piece_classes import pieces as parent
 from tkinter import messagebox
 import numpy as np
+from gmpy2 import xmpz
 
 class King(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
@@ -17,26 +18,13 @@ class King(parent.Piece):
         #    messagebox.showinfo(title="Winner!", message="black has won" if self.colour == "w" else "white has won", parent=self.master.master)
         #    self.game_over = True
 
-    def update_legal_moves(self):
-        self.ghost_moves =[[100,100]]
-        self.legal_moves = [[100,100]]
+    def update_legal_moves(self): # not good enough
+        #self.ghost_moves = xmpz(460039)
+        self.ghost_moves = xmpz(2**63-1)
+        self.legal_moves = xmpz(0)
         row,col = self.pos
-
-        for r in range(-1,2):
-            for c in range(-1,2):
-                r_new = row+r
-                c_new = col+c
-                if r_new ==row and c_new == col:
-                    continue
-                if self.colour == "w":
-                    if not ((self.master.black_can_take == [r_new,c_new]).all(1).any()):
-                        if r_new // 8 == 0 and c_new // 8 == 0:
-                            self.check_square(r_new,c_new)
-                    else:
-                        self.ghost_moves = np.append(self.ghost_moves,[[r_new,c_new]],axis=0)
-                else:
-                    if not ((self.master.white_can_take == [r_new,c_new]).all(1).any()):
-                        if r_new // 8 == 0 and c_new // 8 == 0:
-                            self.check_square(r_new,c_new)
-                    else:
-                        self.ghost_moves = np.append(self.ghost_moves,[[r_new,c_new]],axis=0)
+        
+        if self.colour == "w":
+            self.legal_moves = self.ghost_moves & ( self.master.black_can_take ^ ((2**64)-1)) # ~ doesnt work as it also flips the sign bit
+        else:
+            self.legal_moves = self.ghost_moves & ( self.master.white_can_take ^ ((2**64)-1)) # creates a mask of all the places white cant take

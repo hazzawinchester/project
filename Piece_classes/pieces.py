@@ -1,8 +1,8 @@
 import tkinter as tk
 from PIL import ImageTk, Image
 import numpy as np
-from functools import lru_cache
-
+#from functools import lru_cache
+from gmpy2 import xmpz
 
 pieces = {'p':"♟",'n':"♞",'b':"♝",'r':"♜",'q':"♛",'k':"♚", "P":"♙", "N":"♘", "B":"♗", "R":"♖", "Q":"♕", "K":"♔", '':''}
 file_type = {"classic":"png","periodic":"png", "hidden":"png"}
@@ -73,8 +73,8 @@ class Piece(tk.Label):
         self.ascii = piece
         self.value = values[piece.lower() if piece != '' else '']
         self.has_moved = 0
-        self.legal_moves = [[100,100]]
-        self.ghost_moves = [[100,100]]
+        self.legal_moves = xmpz(0)
+        self.ghost_moves = (0)
         
     def __str__(self):
         rows ={7:"a",6:"b",5:"c",4:"d",3:"e",2:"f",1:"g",0:"h"}
@@ -96,14 +96,20 @@ class Piece(tk.Label):
         pass
 
     def check_square(self,row,col,found= False):
+            square = row*8+col
             if self.master.board[row,col].colour == None and found == False:
-                self.legal_moves = np.append(self.legal_moves,[[row,col]], axis=0)
-                self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
+                #self.legal_moves = np.append(self.legal_moves,[[row,col]], axis=0)
+                self.legal_moves[square] = 1
+                #self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
+                self.ghost_moves[square] = 1
                 return False
             else:
                 if self.master.board[row,col].colour != self.colour and found == False:
-                    self.legal_moves = np.append(self.legal_moves,[[row,col]], axis=0)
-                    self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
+                    #self.legal_moves = np.append(self.legal_moves,[[row,col]], axis=0)
+                    self.legal_moves[square] = 1
+                    #self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
+                    self.ghost_moves[square] = 1
                 if self.master.board[row,col].colour == self.colour:
-                    self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
+                    #self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
+                    self.ghost_moves[square] = 1
                 return True

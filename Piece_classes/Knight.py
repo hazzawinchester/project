@@ -1,12 +1,13 @@
 from Piece_classes import pieces as parent
+from gmpy2 import xmpz
 
 class Knight(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)
 
     def update_legal_moves(self):
-        self.legal_moves = [[100,100]]
-        self.ghost_moves = [[100,100]]
+        self.legal_moves = xmpz(0)
+        self.ghost_moves = xmpz(0)
         row,col = self.pos[0],self.pos[1] 
 
         up1 = row-1

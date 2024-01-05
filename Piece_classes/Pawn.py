@@ -1,5 +1,7 @@
 from Piece_classes import pieces as parent
-from numpy import append,array
+from gmpy2 import xmpz
+import time
+
 
 
 class Pawn(parent.Piece):
@@ -7,18 +9,16 @@ class Pawn(parent.Piece):
         super().__init__(master,piece,row,col,piece_type)
         self.has_moved = 0
 
-    def update_legal_moves(self): 
-        self.legal_moves = [[100,100]]
-        self.ghost_moves = [[100,100]]
-        row,col = self.pos[0],self.pos[1]   
-        board = self.master.board
+    def update_legal_moves(self): # 5*10-6 per move generated
+            self.legal_moves = xmpz(0)
+            self.ghost_moves = xmpz(0)
+            row,col = self.pos[0],self.pos[1]   
+            board = self.master.board
 
-        if self.colour == "w":
-            if row>=1:
+            if self.colour == "w":
                 self.check_forward(board,row-1,row-2,col)
                 self.check_take(board,row-1,col)
-        else:
-            if row<=6:
+            else:
                 self.check_forward(board,row+1,row+2,col)
                 self.check_take(board,row+1,col)
 
@@ -27,23 +27,27 @@ class Pawn(parent.Piece):
     def check_forward(self,board,row1,row2,col):
         if board[row1,col].colour == None:
             blocked = self.check_square(row1,col)
-            if (not self.has_moved) and (not blocked) and (row2 >=0 and row2<=7) and (board[row2,col].colour == None):
+            if (not self.has_moved) and (not blocked) and (row2 >=0 and row2<=7): #and (board[row2,col].colour == None):
                 self.check_square(row2,col)
             else:
-                self.ghost_moves = append(self.ghost_moves,[[row2,col]], axis=0)
+                self.ghost_moves[row2*8+col] =1
         else:
-            self.ghost_moves = append(self.ghost_moves,[[row1,col]], axis=0)
+            self.ghost_moves[row1*8+col] =1
 
     def check_take(self,board,row,col):
         left,right = col-1,col+1
         if col>=1:
-            if not board[row,left].colour in (None,self.colour) or (array([row,left]) == self.master.en_passent).all():
-                self.legal_moves = append(self.legal_moves,[[row,left]], axis=0)
-            self.ghost_moves = append(self.ghost_moves,[[row,left]], axis=0)
+            pos = xmpz(0)
+            pos[row*8+left] =1 
+            if not board[row,left].colour in (None,self.colour) or (pos & self.master.en_passent):
+                self.legal_moves[row*8+left] =1
+            self.ghost_moves[row*8+left] =1
         if col <=6:
-            if not board[row,right].colour in (None,self.colour) or (array([row,right]) == self.master.en_passent).all():
-                self.legal_moves = append(self.legal_moves,[[row,right]], axis=0)
-            self.ghost_moves = append(self.ghost_moves,[[row,right]], axis=0)
+            pos = xmpz(0)
+            pos[row*8+right] =1 
+            if not board[row,right].colour in (None,self.colour) or (pos & self.master.en_passent):
+                self.legal_moves[row*8+right] =1
+            self.ghost_moves[row*8+right] =1
 
 
 
