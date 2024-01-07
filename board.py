@@ -4,6 +4,7 @@ import Drag_handler as dh
 from Piece_classes import pieces,Pawn,Bishop,Knight,Rook,Queen,King
 from Stack import Stack 
 from gmpy2 import xmpz
+import math
 
 
 
@@ -37,7 +38,9 @@ class chessboard(tk.Frame):
 
         self.piece_list = []
         self.white_pieces = []
-        self.black_pieces = []    
+        self.black_pieces = []   
+        self.white_positions= xmpz(0)
+        self.black_positions= xmpz(0) 
         self.black_king = None
         self.white_king = None   
 
@@ -65,7 +68,7 @@ class chessboard(tk.Frame):
         return f"{self.convert_into_fen()}"
     
     def destroy(self):
-        super().destroy()
+        super().destroy() 
         return self.convert_into_fen(),self.recent_moves
 
         
@@ -91,8 +94,10 @@ class chessboard(tk.Frame):
 
                     if temp.isupper():
                         self.white_pieces = np.append(self.white_pieces,piece)
+                        self.white_positions[(row<<3)+col] = 1
                     else:
                         self.black_pieces = np.append(self.black_pieces,piece)
+                        self.black_positions[(row<<3)+col] = 1
 
                     self.piece_list = np.append(self.piece_list,piece)
                                                                              
@@ -148,14 +153,14 @@ class chessboard(tk.Frame):
             self.black_can_take = xmpz(0)
             for i in self.black_pieces:
                 if i.ascii == "p":
-                    self.black_can_take |= (((column << i.pos[1]) ^ ((2**64)-1)) & i.ghost_moves) # makes a mask with 0s int the column where the pawn is in order to make sure non capture moves arents added
+                    self.black_can_take |= (((column << (int(math.log2(i.pos))%8)) ^ ((2**64)-1)) & i.ghost_moves) # makes a mask with 0s int the column where the pawn is in order to make sure non capture moves arents added
                 elif i.ascii !="k":
                     self.black_can_take |= i.ghost_moves
         else:
             self.white_can_take = xmpz(0)
             for i in self.white_pieces:
                 if i.ascii == "P":
-                    self.white_can_take |= (((column << i.pos[1]) ^ ((2**64)-1)) & i.ghost_moves)
+                    self.white_can_take |= (((column << (int(math.log2(i.pos))%8)) ^ ((2**64)-1)) & i.ghost_moves)
                 elif i.ascii !="K":
                     self.white_can_take |= i.ghost_moves
                     
@@ -190,7 +195,8 @@ class chessboard(tk.Frame):
                 self.ascii_board[erow,ecol] = piece.ascii
                 piece.grid(row=erow,column=ecol)
                 piece.lift()
-                piece.pos =[erow,ecol]
+                piece.pos = xmpz(0)
+                piece.pos[(erow<<3)+ecol] =1
                 if self.piece_type in ["ascii","secret"]:
                     piece.config(bg= self.colour_scheme["white"] if (erow+ecol)%2==0 else self.colour_scheme["black"])
                       
@@ -207,11 +213,12 @@ class chessboard(tk.Frame):
                 
                     self.board[srow,scol] = cap
                     self.ascii_board[srow,scol] = cap.ascii
-                    cap.pos = srow,scol
+                    cap.pos=xmpz(0)
+                    cap.pos[(srow<<3)+scol] =1
                     cap.grid(row=srow,column=scol)
                     cap.lift()
                     
-                    #cap.update_legal_moves()
+                    cap.update_legal_moves()
                 if self.half_move % 2 == 0:
                     self.active_colour = "w"
                 else:
@@ -268,7 +275,8 @@ class chessboard(tk.Frame):
 # once a pawn has reached the last rank it is deleted and the user is offered 4 options between for which piece they would like to promote to 
     def promote(self,piece,start,move_type=None,captured="-"):
         self.move_stored = True
-        row,col = piece.pos
+        square = int(math.log2(piece.pos))
+        row,col = square//8,square%8
         container = tk.Frame(self,width=100,height=100, bg="white" if (row+col)%2==0 else "gray", borderwidth=0,padx=0,pady=0)
         container.grid_columnconfigure(col, minsize=2)
         container.grid_rowconfigure(row, minsize=2)

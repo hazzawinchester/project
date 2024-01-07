@@ -2,6 +2,7 @@ from Piece_classes import pieces as parent
 import numpy as np
 from gmpy2 import xmpz
 import time
+import math
 
 class Queen(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
@@ -11,7 +12,8 @@ class Queen(parent.Piece):
         self.legal_moves = xmpz(0) # np.empty((1,2),"int")
         self.ghost_moves = xmpz(0)
 
-        row,col = self.pos
+        square = int(math.log2(self.pos))
+        row,col = square//8,square%8
         left,right,up,down,left_up,left_down,right_up,right_down,a = False,False,False,False,False,False,False,False,1
 
         while left==False or right==False or up==False or down==False or left_up==False or left_down==False or right_up==False or right_down==False:
@@ -22,13 +24,13 @@ class Queen(parent.Piece):
 
             if this_left >=0:
                 if left == False:
-                    left = self.check_square(row,this_left,left)
+                    left = self.check_square((row<<3)+this_left,left)
                 if this_up >= 0:
-                    left_up = self.check_square(this_up,this_left,left_up)
+                    left_up = self.check_square((this_up<<3)+this_left,left_up)
                 else:
                     left_up = True
                 if this_down <=7:
-                    left_down = self.check_square(this_down,this_left,left_down)
+                    left_down = self.check_square((this_down<<3)+this_left,left_down)
                 else:
                     left_down = True
             else:
@@ -38,13 +40,13 @@ class Queen(parent.Piece):
 
             if this_right <=7:
                 if right == False:
-                    right = self.check_square(row,this_right,right)
+                    right = self.check_square((row<<3)+this_right,right)
                 if this_up >= 0:
-                    right_up = self.check_square(this_up,this_right,right_up)
+                    right_up = self.check_square((this_up<<3)+this_right,right_up)
                 else:
                     right_up = True
                 if this_down <=7:
-                    right_down = self.check_square(this_down,this_right,right_down)
+                    right_down = self.check_square((this_down<<3)+this_right,right_down)
                 else:
                     right_down = True
             else:
@@ -53,12 +55,12 @@ class Queen(parent.Piece):
                 right_up = True
 
             if this_down <=7:
-                down = self.check_square(this_down,col,down)
+                down = self.check_square((this_down<<3)+col,down)
             else:
                 down = True
 
             if this_up >=0:
-                up = self.check_square(this_up,col,up)
+                up = self.check_square((this_up<<3)+col,up)
             else:
                 up = True
             a+=1

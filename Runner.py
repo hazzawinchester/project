@@ -7,13 +7,13 @@ import time
 window = master.Window()
 
 window.add_frame(home.Home_page(window),"Home")
-window.add_frame(play.Chess_game(window,"periodic"),"Play")
+window.add_frame(play.Chess_game(window,"ascii"),"Play")
 window.add_frame(variants.Variants_page(window),"Variants")
 window.add_frame(settings.Settings_page(window),"Settings")
 window.add_frame(sign_in.Sign_in_page(window),"Sign in")
 
 
-window.show_frame("Home")
+window.show_frame("Play")
 
 window.mainloop() 
 

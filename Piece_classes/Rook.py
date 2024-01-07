@@ -2,7 +2,7 @@ from Piece_classes import pieces as parent
 import numpy as np
 import time
 from gmpy2 import xmpz
-
+import math
 
 class Rook(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
@@ -12,30 +12,31 @@ class Rook(parent.Piece):
     def update_legal_moves(self):  # 2.6*10^-6 per move max
         self.legal_moves = xmpz(0)
         self.ghost_moves = xmpz(0)
-        row,col = self.pos[0],self.pos[1]
+        square = int(math.log2(self.pos))
+        row,col = square//8,square%8
         left,right,up,down,a = False,False,False,False,1
         while left==False or right==False or up==False or down==False:
             if left == False:
                 if col-a >=0:
-                    left = self.check_square(row,(col-a),left)
+                    left = self.check_square((row<<3)+(col-a),left)
                 else:
                     left = True
 
             if right == False:
                 if col+a <=7:
-                    right = self.check_square(row,(col+a),right)
+                    right = self.check_square((row<<3)+(col+a),right)
                 else:
                     right = True
 
             if up == False:
                 if row-a >=0:
-                    up = self.check_square((row-a),col,up)
+                    up = self.check_square(((row-a)<<3)+col,up)
                 else:
                     up = True
 
             if down == False:
                 if row+a <=7:
-                    down = self.check_square((row+a),col,down)
+                    down = self.check_square(((row+a)<<3)+col,down)
                 else:
                     down = True
             a+=1        

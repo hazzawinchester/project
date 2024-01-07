@@ -1,5 +1,6 @@
 from Piece_classes import pieces as parent
 from gmpy2 import xmpz
+import math
 
 class Bishop(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
@@ -9,7 +10,8 @@ class Bishop(parent.Piece):
         self.legal_moves = xmpz(0)
         self.ghost_moves = xmpz(0)
         
-        row,col = self.pos[0],self.pos[1]
+        square = int(math.log2(self.pos))
+        row,col = square//8,square%8
         left_up,left_down,right_up,right_down,a = False,False,False,False,1
 
         while left_up==False or left_down==False or right_up==False or right_down==False:
@@ -20,11 +22,11 @@ class Bishop(parent.Piece):
 
             if this_left >=0:
                 if this_up >=0:
-                    left_up = self.check_square(this_up,this_left,left_up)
+                    left_up = self.check_square((this_up<<3)+this_left,left_up)
                 else:
                     left_up = True
                 if this_down <=7:
-                    left_down = self.check_square(this_down,this_left,left_down)
+                    left_down = self.check_square((this_down<<3)+this_left,left_down)
                 else:
                     left_down = True
             else:
@@ -33,12 +35,12 @@ class Bishop(parent.Piece):
             
             if this_right <=7:
                 if this_up >=0:
-                    right_up = self.check_square(this_up,this_right,right_up)
+                    right_up = self.check_square((this_up<<3)+this_right,right_up)
                 else:
                     right_up = True
 
                 if this_down <=7:
-                    right_down = self.check_square(this_down,this_right,right_down)
+                    right_down = self.check_square((this_down<<3)+this_right,right_down)
                 else:
                     right_down = True
             else:

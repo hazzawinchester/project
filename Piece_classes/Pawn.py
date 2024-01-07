@@ -1,53 +1,62 @@
 from Piece_classes import pieces as parent
 from gmpy2 import xmpz
 import time
-
+import math
 
 
 class Pawn(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)
         self.has_moved = 0
+        if piece.isupper():
+            self.enemy = self.master.black_positions
+            self.friend = self.master.white_positions
+        else:
+            self.enemy = self.master.white_positions
+            self.friend = self.master.black_positions
+
 
     def update_legal_moves(self): # 5*10-6 per move generated
-            self.legal_moves = xmpz(0)
-            self.ghost_moves = xmpz(0)
-            row,col = self.pos[0],self.pos[1]   
-            board = self.master.board
+        self.legal_moves = xmpz(0)
+        self.ghost_moves = xmpz(0)
+        square = int(math.log2(self.pos))
+        row,col = square//8,square%8  
+        board = self.master.board
 
-            if self.colour == "w":
-                self.check_forward(board,row-1,row-2,col)
-                self.check_take(board,row-1,col)
-            else:
-                self.check_forward(board,row+1,row+2,col)
-                self.check_take(board,row+1,col)
-
-
-
-    def check_forward(self,board,row1,row2,col):
-        if board[row1,col].colour == None:
-            blocked = self.check_square(row1,col)
-            if (not self.has_moved) and (not blocked) and (row2 >=0 and row2<=7): #and (board[row2,col].colour == None):
-                self.check_square(row2,col)
-            else:
-                self.ghost_moves[row2*8+col] =1
+        if self.colour == "w":
+            self.check_forward((row-1<<3)+col,(row-2<<3)+col)
+            self.check_take(board,row-1,col)
         else:
-            self.ghost_moves[row1*8+col] =1
+            self.check_forward((row+1<<3)+col,(row+2<<3)+col)
+            self.check_take(board,row+1,col)
+
+
+
+    def check_forward(self,square1,square2):
+        if ( 2**(square1) & (self.master.black_positions | self.master.white_positions))==0:
+            blocked = self.check_square(square1)
+            if (not self.has_moved) and (not blocked) and (square2>0 and len(bin(square2))<=66) and ( 2**(square2) & (self.master.black_positions | self.master.white_positions))==0: #and (board[row2,col].colour == None):
+                self.legal_moves[square2] =1
+                self.ghost_moves[square2] =1
+            else:
+                self.ghost_moves[square2] =1
+        else:
+            self.ghost_moves[square1] =1
 
     def check_take(self,board,row,col):
-        left,right = col-1,col+1
+        left,right = (row<<3)+col-1,(row<<3)+col+1
         if col>=1:
             pos = xmpz(0)
-            pos[row*8+left] =1 
-            if not board[row,left].colour in (None,self.colour) or (pos & self.master.en_passent):
-                self.legal_moves[row*8+left] =1
-            self.ghost_moves[row*8+left] =1
+            pos[left] =1 
+            if pos&self.enemy or (pos & self.master.en_passent):
+                self.legal_moves[left] =1
+            self.ghost_moves[left] =1
         if col <=6:
             pos = xmpz(0)
-            pos[row*8+right] =1 
-            if not board[row,right].colour in (None,self.colour) or (pos & self.master.en_passent):
-                self.legal_moves[row*8+right] =1
-            self.ghost_moves[row*8+right] =1
+            pos[right] =1 
+            if pos&self.enemy or (pos & self.master.en_passent):
+                self.legal_moves[right] =1
+            self.ghost_moves[right] =1
 
 
 

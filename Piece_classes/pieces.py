@@ -69,7 +69,8 @@ class Piece(tk.Label):
 
         # piece attributes
         self.master = master
-        self.pos = [row,col]
+        self.pos = xmpz(0)
+        self.pos[(row<<3)+col]=1
         self.ascii = piece
         self.value = values[piece.lower() if piece != '' else '']
         self.has_moved = 0
@@ -88,6 +89,10 @@ class Piece(tk.Label):
                 self.master.white_pieces = np.delete(self.master.white_pieces, np.where(self.master.white_pieces == self))
             else:
                 self.master.black_pieces = np.delete(self.master.black_pieces, np.where(self.master.black_pieces == self))
+    
+    def grid_remove(self):
+        super().grid_remove()
+        self.ghost_moves = xmpz(0)
 
     
     def update_legal_moves(self):
@@ -95,21 +100,24 @@ class Piece(tk.Label):
     def update_ghost_moves(self):
         pass
 
-    def check_square(self,row,col,found= False):
-            square = row*8+col
-            if self.master.board[row,col].colour == None and found == False:
-                #self.legal_moves = np.append(self.legal_moves,[[row,col]], axis=0)
+    def check_square(self,square,found= False):
+            pos = xmpz(0)
+            pos[square]=1
+            if self.colour =="w":
+                enemy = self.master.black_positions
+                friend = self.master.white_positions
+            else:
+                enemy = self.master.white_positions
+                friend = self.master.black_positions
+                
+            if  (pos & (enemy | friend)) == 0 and not found:
                 self.legal_moves[square] = 1
-                #self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
                 self.ghost_moves[square] = 1
                 return False
             else:
-                if self.master.board[row,col].colour != self.colour and found == False:
-                    #self.legal_moves = np.append(self.legal_moves,[[row,col]], axis=0)
+                if (pos & enemy) and not found:
                     self.legal_moves[square] = 1
-                    #self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
                     self.ghost_moves[square] = 1
-                if self.master.board[row,col].colour == self.colour:
-                    #self.ghost_moves = np.append(self.ghost_moves,[[row,col]], axis=0)
+                if pos & friend:
                     self.ghost_moves[square] = 1
                 return True

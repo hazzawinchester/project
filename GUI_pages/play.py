@@ -11,7 +11,7 @@ class Chess_game(tk.Frame):
         ttk.Button(self,width=10, text = "Resign", command = self.delete_board).pack()
         
     
-    def create_board(self,master,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",stack=[], piece_type="classic", game_type="p", colour_scheme=["#e2bd8d","#300659"]):#"#e2bd8d","#421e00"
+    def create_board(self,master,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",stack=[], piece_type="classic", game_type="p", colour_scheme=["#e2bd8d","#421e00"]):#"#e2bd8d","#421e00"  libs #300659
         if self.chessboard != None:
             self.delete_board()
         

@@ -29,14 +29,16 @@ class Drag_handler():
         
         
         
-        # if event.widget.colour == self.master.active_colour :#and self.master.piece_type != "hidden"
-        #     if self.master.piece_type in ["ascii","secret"]:
-        #         event.widget.config(bg="#ccff99")
-        #     if self.master.piece_type != "secret":
-        #         for i in event.widget.legal_moves:
-        #             row,col = i
-        #             for a in self.master.grid_slaves(row =row,column =col):
-        #                 a.config(bg=("#"+hex(int(int(self.master.colour_scheme["white"][1:],16) *0.5)%16777216).lstrip("0x")) if (row+col)%2==0 else ("#"+hex(int(int(self.master.colour_scheme["black"][1:],16)*0.5)%16777216).lstrip("0x")))
+        if event.widget.colour == self.master.active_colour :#and self.master.piece_type != "hidden"
+            if self.master.piece_type in ["ascii","secret"]:
+                event.widget.config(bg="#ccff99")
+            if self.master.piece_type != "secret":
+                moves = bin(event.widget.legal_moves)[2:]
+                for i in range(1,len(moves)+1):
+                    if int(moves[-i]):
+                        row,col = (i-1)//8,(i-1)%8
+                        for a in self.master.grid_slaves(row =row,column =col):
+                            a.config(bg=("#"+hex(int(int(self.master.colour_scheme["white"][1:],16) *0.5)%16777216).lstrip("0x")) if (row+col)%2==0 else ("#"+hex(int(int(self.master.colour_scheme["black"][1:],16)*0.5)%16777216).lstrip("0x")))
         
         
         
@@ -54,16 +56,17 @@ class Drag_handler():
         piece = event.widget 
 
         #if  self.master.piece_type != "hidden":
-        # for i in piece.legal_moves:
-        #     temp_row,temp_col = i
-        #     for a in self.master.grid_slaves(row =temp_row,column =temp_col):
-        #         a.config(bg= self.master.colour_scheme["white"] if (temp_row+temp_col)%2==0 else self.master.colour_scheme["black"])
+        moves = bin(piece.legal_moves)[2:]
+        for i in range(1,len(moves)+1):
+            if int(moves[-i]):
+                temp_row,temp_col = (i-1)//8,(i-1)%8
+                for a in self.master.grid_slaves(row =temp_row,column =temp_col):
+                    a.config(bg= self.master.colour_scheme["white"] if (temp_row+temp_col)%2==0 else self.master.colour_scheme["black"])
 
 
 
 
-        if  (move & piece.legal_moves) and self.master.active_colour == piece.colour: #(piece.legal_moves == move).all(1).any()
-            
+        if  (move & piece.legal_moves) and self.master.active_colour == piece.colour:
             if self.master.piece_type in ["ascii","secret"]:
                 piece.config(bg= self.master.colour_scheme["white"] if (row+col)%2==0 else self.master.colour_scheme["black"])
             
@@ -108,7 +111,7 @@ class Drag_handler():
                     self.master.en_passent = xmpz(0)
                     self.master.store_move([self.start_row,self.start_col],[row,col],piece.ascii,move_type,captured_piece)
                     
-                if (piece.pos[0] == 0 or piece.pos[0] == 7):
+                if (piece.pos[0:8] != 0 or piece.pos[56:64] != 0):
                     self.master.promote(piece,[self.start_row,self.start_col],move_type= "promo" if move_type == "quiet" else "promo-capture",captured=captured_piece)
             else:
                 self.master.old_passent = self.master.en_passent
@@ -119,24 +122,21 @@ class Drag_handler():
             piece.has_moved +=1
             
             self.master.half_move += 1
-            s = time.time()
-            for i in range(10000):
-                self.update_affected_pieces(2**(self.start_row*8+self.start_col),2**(row*8+col))
-            print((time.time()-s)/10000)
+            #s = time.time()
+            #for i in range(10000):
+            self.update_affected_pieces(2**(self.start_row*8+self.start_col),2**(row*8+col))
+            #print((time.time()-s)/10000)
 
             #turn controlling
             if self.master.half_move % 2 == 1:
                 self.master.active_colour = "b"
-                if (2**(self.master.white_king.pos[0]*8+self.master.white_king.pos[1])) & self.master.black_can_take:
+                if self.master.white_king.pos & self.master.black_can_take:
                     self.master.reverse_move()
             else:
                 self.master.active_colour ="w"
                 self.master.full_move += 1
-                if (2**(self.master.black_king.pos[0]*8+self.master.black_king.pos[1])) & self.master.white_can_take:
-                    self.master.reverse_move()
-                    pass
-                
-            
+                if self.master.black_king.pos & self.master.white_can_take:
+                    self.master.reverse_move()                
                 
         else:
             piece.grid(row=self.start_row,column=self.start_col)
@@ -151,12 +151,20 @@ class Drag_handler():
         self.master.board[row,col] = piece
         self.master.ascii_board[row,col] = piece.ascii
         piece.grid(row=row,column=col)
-        piece.pos =[row,col]
+        piece.pos = xmpz(0)
+        piece.pos[(row<<3)+col]=1
         
         temp = p.Piece(self.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
         self.master.board[self.start_row,self.start_col] = temp
         self.master.ascii_board[self.start_row,self.start_col] = ''
         temp.grid(row=self.start_row,column=self.start_col)
+        
+        if piece.colour == "w":
+            self.master.white_positions[(row<<3)+col] = 1
+            self.master.white_positions[(self.start_row<<3)+self.start_col] = 0
+        else:
+            self.master.black_positions[(row<<3)+col] = 1
+            self.master.black_positions[(self.start_row<<3)+self.start_col] = 0
 
 
     def update_affected_pieces(self,start,end):

@@ -1,6 +1,6 @@
 from Piece_classes import pieces as parent
 from gmpy2 import xmpz
-
+import math
 class Knight(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)
@@ -8,7 +8,8 @@ class Knight(parent.Piece):
     def update_legal_moves(self):
         self.legal_moves = xmpz(0)
         self.ghost_moves = xmpz(0)
-        row,col = self.pos[0],self.pos[1] 
+        square = int(math.log2(self.pos))
+        row,col = square//8,square%8
 
         up1 = row-1
         up2 = row-2
@@ -21,26 +22,26 @@ class Knight(parent.Piece):
 
         if col >=1:
             if row >=2:
-                self.check_square(up2,left1)
+                self.check_square((up2<<3)+left1)
             if row <=5:
-                self.check_square(down2,left1)
+                self.check_square((down2<<3)+left1)
             if col >= 2:
                 if row >=1:
-                    self.check_square(up1,left2)
+                    self.check_square((up1<<3)+left2)
                 if row <=6:
-                    self.check_square(down1,left2)
+                    self.check_square((down1<<3)+left2)
 
         if col <= 6:
             if row >=2:
-                self.check_square(up2,right1)
+                self.check_square((up2<<3)+right1)
             if row <=5:
-                self.check_square(down2,right1)
+                self.check_square((down2<<3)+right1)
                 
             if col <= 5:
                 if row >=1:
-                    self.check_square(up1,right2)
+                    self.check_square((up1<<3)+right2)
                 if row <=6:
-                    self.check_square(down1,right2)
+                    self.check_square((down1<<3)+right2)
 
 
 
