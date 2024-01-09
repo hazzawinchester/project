@@ -18,7 +18,7 @@ class Stack:
     def pop(self):
         if not self.is_empty():
             out = self.data[-1]
-            self.data = self.data[:-1]
+            self.data = self.data[:-1] if len(self.data)>1 else np.array([],int)
             return out
         return False
     

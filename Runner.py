@@ -6,14 +6,16 @@ import time
 # runner that collects all GUI elements to assembles them into the interface
 window = master.Window()
 
+chess = play.Chess_game(window,"periodic")
 window.add_frame(home.Home_page(window),"Home")
-window.add_frame(play.Chess_game(window,"ascii"),"Play")
+window.add_frame(chess,"Play")
 window.add_frame(variants.Variants_page(window),"Variants")
 window.add_frame(settings.Settings_page(window),"Settings")
 window.add_frame(sign_in.Sign_in_page(window),"Sign in")
 
 
 window.show_frame("Play")
+chess.create_board(chess,piece_type="periodic")
 
 window.mainloop() 
 
@@ -27,5 +29,8 @@ Using the o^(o-2r) trick when calculating moves for individual sliding pieces, u
 use gmpy2 for bitwise???? 1/ten mil of a second to update
 V good - based in c
 well kept doccumentation
+
+import matplotlib.pyplot as plt
+plot graph perfomance?
 
 """
