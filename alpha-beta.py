@@ -32,7 +32,10 @@ class Alpha_Beta:
         # checks if after the move the king can be attacked by any pieces
         # returns true if the king cannot be attacked
         pass
-
+    
+    def search_all_captures(self,alpha, beta):
+        pass
+    
     def alpha_beta(self,board, depth, alpha, beta,was_capture, whites_turn):
         if depth >0 or self.terminal(board) and not was_capture:
             return self.evaluate(board) 
