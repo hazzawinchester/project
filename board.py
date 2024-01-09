@@ -30,7 +30,7 @@ class chessboard(tk.Frame):
         self.border_width =border_width
         self.recent_moves = Stack()
         self.captured_pieces = Stack()
-        {self.recent_moves.push(i) for i in stack}
+        {self.recent_moves.push(int(i)) for i in stack}
 
         white = colour_scheme[0]
         black =colour_scheme[1]
@@ -45,7 +45,7 @@ class chessboard(tk.Frame):
         self.white_king = None   
 
         self.dnd = dh.Drag_handler()
-        self.old_passent = xmpz(0)
+        self.old_passant = xmpz(0)
 
         
         self.ascii_board = np.zeros((8,8),dtype=str)
@@ -170,7 +170,7 @@ class chessboard(tk.Frame):
             convert = {"p":1,"n":2,"b":3,"r":5,"q":6,"k":4,"P":9,"N":10,"B":11,"R":13,"Q":14,"K":12, "-":0}
             move_types = {'quiet': 0, 'double': 1, 'pawn': 1, 'push': 1, 'king-side': 2, 'queen-side': 3, 'capture': 4, 'ep-capture': 5, 'n-promo': 8, 'b-promo': 9, 'r-promo': 10, 'q-promo': 11, 'n-promo-capture': 12, 'b-promo-capture': 13, 'r-promo-capture': 14, 'q-promo-capture': 15}
             move =(convert[captured] << 20) + (convert[piece] <<16)+(((start[0]*8) + start[1]) <<10)+(((end[0]*8) + end[1]<<4)) +move_types[type]
-            self.recent_moves.push(move) # this is very ugly should be fixed
+            self.recent_moves.push(int(move)) # this is very ugly should be fixed
             self.move_stored = True
             
             #print(self.recent_moves.peak())
@@ -184,56 +184,72 @@ class chessboard(tk.Frame):
         if move:
             out = str(bin(move)[2:].zfill(24))
             breakdown = [pieces[int(out[:4],2)], pieces[int(out[4:8],2)], [(int(out[8:11],2)),(int(out[11:14],2))], [(int(out[14:17],2)),(int(out[17:20],2))],types[int(out[20:],2)]]
-            
+                # 0 - piece captured, 1- piece moved, 2- start square, 3- end square, 4 move type
             erow,ecol = breakdown[2]
             srow,scol = breakdown[3]
-            if breakdown[-1] in ["quiet","double","capture","ep-capture"]:
+            
+            
+            if "promo" in breakdown[-1]:
+                self.board[srow,scol].destroy()
+                piece = self.captured_pieces.pop()
+            else:
                 piece = self.board[srow,scol]
-                
-                self.board[erow,ecol].destroy()
-                self.board[erow,ecol] = piece
-                self.ascii_board[erow,ecol] = piece.ascii
-                piece.grid(row=erow,column=ecol)
-                piece.lift()
-                piece.pos = xmpz(0)
-                piece.pos[(erow<<3)+ecol] =1
-                if self.piece_type in ["ascii","secret"]:
-                    piece.config(bg= self.colour_scheme["white"] if (erow+ecol)%2==0 else self.colour_scheme["black"])
-                      
-                piece.has_moved -= 1
-                self.half_move -= 1
-                
-                self.en_passent = self.old_passent
-                self.old_passent = xmpz(0)
-                
-                if breakdown[0] == "nothing": # CHANGE TO ENCORPORTATE PROMOTE
-                    self.replace_piece("",tk.Label(self),[srow,scol])
-                else:
-                    cap = self.captured_pieces.pop()
-                
-                    self.board[srow,scol] = cap
-                    self.ascii_board[srow,scol] = cap.ascii
-                    cap.pos=xmpz(0)
-                    cap.pos[(srow<<3)+scol] =1
-                    cap.grid(row=srow,column=scol)
-                    cap.lift()
+            
+            self.board[erow,ecol].destroy()
+            self.board[erow,ecol] = piece
+            self.ascii_board[erow,ecol] = piece.ascii
+            piece.grid(row=erow,column=ecol)
+            piece.lift()
+            piece.pos = xmpz(0)
+            piece.pos[(erow<<3)+ecol] =1
+            if self.piece_type in ["ascii","secret"]:
+                piece.config(bg= self.colour_scheme["white"] if (erow+ecol)%2==0 else self.colour_scheme["black"])
                     
-                    cap.update_legal_moves()
+            piece.has_moved -= 1
+            self.half_move -= 1
+            
+            self.en_passant = self.old_passant
+            self.old_passant = xmpz(0)
+            
+            if breakdown[0] == "nothing": # CHANGE TO ENCORPORTATE PROMOTE
+                self.replace_piece("",tk.Label(self),[erow,ecol],[srow,scol])
+            else:
+                cap = self.captured_pieces.pop()
+            
+                self.board[srow,scol] = cap
+                self.ascii_board[srow,scol] = cap.ascii
+                cap.pos=xmpz(0)
+                cap.pos[(srow<<3)+scol] =1
+                cap.grid(row=srow,column=scol)
+                cap.lift()
                 if self.half_move % 2 == 0:
-                    self.active_colour = "w"
+                    self.black_positions[(srow<<3)+scol] = 1
                 else:
-                    self.active_colour ="b"
-                    self.full_move -= 1
-
-                piece.update_legal_moves()
-                self.dnd.update_affected_pieces(2**(erow*8+ecol),2**(srow*8+scol))
+                    self.white_positions[(srow<<3)+scol] = 1
+                
+                cap.update_legal_moves()
+                        
+            piece.update_legal_moves()
+            self.dnd.update_affected_pieces(2**(erow*8+ecol),2**(srow*8+scol))
+            
+            if self.half_move % 2 == 0:
+                self.white_positions[(erow<<3)+ecol] = 1
+                self.white_positions[(srow<<3)+scol] = 0
+                self.active_colour = "w"
+                
+            else:
+                self.active_colour ="b"
+                self.full_move -= 1
+                self.black_positions[(erow<<3)+ecol] = 1
+                self.black_positions[(srow<<3)+scol] = 0
+            
         
     def FEN_extractor(self,fen):
         fen = fen.split(" ")
         self.make_array_of_pieces(fen[0])
         self.active_colour = fen[1]
         self.avaiable_castle = fen[2]
-        self.en_passent = xmpz(self.convert_from_binary(fen[3]))
+        self.en_passant = xmpz(self.convert_from_binary(fen[3]))
         self.half_move = int(fen[4])
         self.full_move = int(fen[5])
 
@@ -256,7 +272,7 @@ class chessboard(tk.Frame):
             board += temp + "/"
         board = board[:-1]
         
-        return f"{board} {self.active_colour} {self.avaiable_castle} {self.convert_to_binary(self.en_passent)} {self.half_move} {self.full_move}"
+        return f"{board} {self.active_colour} {self.avaiable_castle} {self.convert_to_binary(self.en_passant)} {self.half_move} {self.full_move}"
     
     def convert_from_binary(self,move):
         if move == '-':
@@ -283,23 +299,25 @@ class chessboard(tk.Frame):
 
         container.grid(row=row,column=col)
         self.captured_pieces.push(piece)
-        piece.destroy()
+        piece.grid_remove()
+
+        tk.Button(container, bg= self.colour_scheme["white"], text="♛", font=["arial",15], command= lambda:[ self.replace_piece("q",container,start,[row,col]), self.store_move(start,[row,col],piece.ascii,"q-"+move_type,captured)]).grid(row=0,column=0, sticky= "nesw")
+        tk.Button(container, bg= self.colour_scheme["black"], text="♜" ,font=["arial",15], command= lambda:[ self.replace_piece("r",container,start,[row,col]), self.store_move(start,[row,col],piece.ascii,"r-"+move_type,captured)]).grid(row=0,column=1, sticky= "nesw")
+        tk.Button(container, bg= self.colour_scheme["black"], text="♝", font=["arial",15], command= lambda:[ self.replace_piece("b",container,start,[row,col]), self.store_move(start,[row,col],piece.ascii,"b-"+move_type,captured)]).grid(row=1,column=0, sticky= "nesw")
+        tk.Button(container, bg= self.colour_scheme["white"], text="♞", font=["arial",15], command= lambda:[ self.replace_piece("n",container,start,[row,col]), self.store_move(start,[row,col],piece.ascii,"n-"+move_type,captured)]).grid(row=1,column=1, sticky= "nesw")
 
         self.active_colour = None
-
-        tk.Button(container, bg= self.colour_scheme["white"], text="♛", font=["arial",15], command= lambda:[ self.replace_piece("q",container,[row,col]), self.store_move(start,[row,col],piece.ascii,"q-"+move_type,captured)]).grid(row=0,column=0, sticky= "nesw")
-        tk.Button(container, bg= self.colour_scheme["black"], text="♜" ,font=["arial",15], command= lambda:[ self.replace_piece("r",container,[row,col]), self.store_move(start,[row,col],piece.ascii,"r-"+move_type,captured)]).grid(row=0,column=1, sticky= "nesw")
-        tk.Button(container, bg= self.colour_scheme["black"], text="♝", font=["arial",15], command= lambda:[ self.replace_piece("b",container,[row,col]), self.store_move(start,[row,col],piece.ascii,"b-"+move_type,captured)]).grid(row=1,column=0, sticky= "nesw")
-        tk.Button(container, bg= self.colour_scheme["white"], text="♞", font=["arial",15], command= lambda:[ self.replace_piece("n",container,[row,col]), self.store_move(start,[row,col],piece.ascii,"n-"+move_type,captured)]).grid(row=1,column=1, sticky= "nesw")
 
         # places a piece in the position of the pawn and corrects all the data structures to refelct this
 
 
-    def replace_piece(self,p,container,pos):
+    def replace_piece(self,p,container,start,pos):
         
         self.move_stored = False # essential as otherwise the program runs too fast in the drag handler and treats it as just a normal capture
         
         row,col = pos
+        ssquare = 1<<(start[0]<<3+start[1])
+        esquare = 1<<(row<<3+col)
         if self.half_move %2 ==1:
             piece_ascii = p.upper()
         else:
@@ -334,9 +352,16 @@ class chessboard(tk.Frame):
         self.dnd.add_dragable(piece)
 
         container.destroy()
+        self.dnd.update_affected_pieces(ssquare,esquare)
 
         self.active_colour = "w" if self.half_move %2 ==0 else "b"
         
+        if self.half_move % 2 == 1:
+            self.active_colour = "b"
+        else:
+            self.active_colour ="w"
+            self.full_move += 1
+ 
 
 
     
