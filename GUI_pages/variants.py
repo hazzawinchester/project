@@ -7,4 +7,4 @@ class Variants_page(tk.Frame):
         self.grid_columnconfigure(0, weight = 1)
 
         header = tk.Label(self, text = "Variants", font = ("arial",10),bg="gray",borderwidth=0)
-        header.grid(row=0,column=0,sticky="nesw")
+        header.grid(row=0,column=0,sticky="nesw") 

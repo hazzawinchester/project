@@ -21,7 +21,7 @@ class Rules(tk.Frame):
         container = tk.Canvas(self,bg="#4b4b4b")#,yscrollcommand=scroll_bar.set
         container.grid(row=1,column=0, sticky="nesw")
 
-        rules = wrap.WrappingLabel(container, text = self.rules_text)
+        rules = wrap.WrappingLabel(container, text = self.rules_text) 
         rules.pack(expand=True, fill=tk.X,anchor="nw")
         
         tips =wrap.WrappingLabel(container, text = self.top_tips)

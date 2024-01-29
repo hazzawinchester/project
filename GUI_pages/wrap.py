@@ -5,3 +5,4 @@ class WrappingLabel(tk.Label):
     def __init__(self, master=None,text="", **kwargs):
         tk.Label.__init__(self, master,text=text,font = ("arial",10),wraplength=800,justify="left",bg="#4b4b4b", **kwargs)
         self.bind('<Configure>', lambda e: self.config(wraplength=self.winfo_width()))
+ 
