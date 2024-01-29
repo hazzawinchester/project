@@ -9,9 +9,6 @@ import random
 
 
 
-
-binary = {"a":7,"b":6,"c":5,"d":4, "e":3, "f":2, "g":1, "h":0}
-
 # board class which will be used to create a chessboard from a given FEN string, is a child of tk.frame so it can contain the gui function of the board
 class chessboard(tk.Frame):
     def __init__(self, master=None,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",stack=[],piece_type="classic", game_type="2p", colour_scheme=["#e2bd8d","#421e00"], border_width = 35):
@@ -46,7 +43,7 @@ class chessboard(tk.Frame):
         self.white_king = None   
 
         self.move_handler = Move_handler.Move_handler(self)
-        self.old_passant = xmpz(0)
+        self.old_passant = 0
 
         
         self.ascii_board = np.zeros((8,8),dtype=str)
@@ -175,13 +172,13 @@ class chessboard(tk.Frame):
                     self.white_can_take |= i.ghost_moves
     #converts the move into a unique integer that is added to the stack so it can be reversed at any time
     def store_move(self,start,end,piece,type="quiet",captured="-"):
-        if not self.move_stored:
-            convert = {"p":1,"n":2,"b":3,"r":5,"q":6,"k":4,"P":9,"N":10,"B":11,"R":13,"Q":14,"K":12, "-":0}
-            move_types = {'quiet': 0, 'double': 1, 'pawn': 1, 'push': 1, 'king-side': 2, 'queen-side': 3, 'capture': 4, 'ep-capture': 5, 'n-promo': 8, 'b-promo': 9, 'r-promo': 10, 'q-promo': 11, 'n-promo-capture': 12, 'b-promo-capture': 13, 'r-promo-capture': 14, 'q-promo-capture': 15}
-            move =(convert[captured] << 20) + (convert[piece] <<16)+(((start[0]*8) + start[1]) <<10)+(((end[0]*8) + end[1]<<4)) +move_types[type]
-            self.recent_moves.push(int(move)) # this is very ugly should be fixed
-            self.move_stored = True
-            
+        #if not self.move_stored:
+        convert = {"p":1,"n":2,"b":3,"r":5,"q":6,"k":4,"P":9,"N":10,"B":11,"R":13,"Q":14,"K":12, "-":0}
+        move_types = {'quiet': 0, 'double': 1, 'pawn': 1, 'push': 1, 'king-side': 2, 'queen-side': 3, 'capture': 4, 'ep-capture': 5, 'n-promo': 8, 'b-promo': 9, 'r-promo': 10, 'q-promo': 11, 'n-promo-capture': 12, 'b-promo-capture': 13, 'r-promo-capture': 14, 'q-promo-capture': 15}
+        move =(convert[captured] << 20) + (convert[piece] <<16)+(((start[0]*8) + start[1]) <<10)+(((end[0]*8) + end[1]<<4)) +move_types[type]
+        self.recent_moves.push(int(move)) # this is very ugly should be fixed
+        self.move_stored = True
+        
             #print(self.recent_moves.peak())
             #print(self.recent_moves)
     
@@ -196,7 +193,6 @@ class chessboard(tk.Frame):
                 # 0 - piece captured, 1- piece moved, 2- start square, 3- end square, 4 move type
             erow,ecol = breakdown[2]
             srow,scol = breakdown[3]
-            
             
             if "promo" in breakdown[-1]:
                 self.board[srow,scol].destroy()
@@ -217,27 +213,40 @@ class chessboard(tk.Frame):
             piece.has_moved -= 1
             self.half_move -= 1
             
-            self.en_passant = self.old_passant
-            self.old_passant = xmpz(0)
+            self.old_passant = self.en_passant
+            previous = str(bin(self.recent_moves.peak())[2:].zfill(24))
+            if types[int(previous[20:],2)] == "double":
+                row,col = (int(previous[8:11],2)),(int(previous[11:14],2))
+
+                self.en_passant = xmpz(2**(((row-1)<<3)+col) if self.half_move % 2 == 1 else 2**(((row+1)<<3)+col))
+                
+            else:
+                self.en_passant =xmpz(0)
+
             
             if breakdown[0] == "nothing": # CHANGE TO ENCORPORTATE PROMOTE
                 self.replace_piece("",tk.Label(self),[erow,ecol],[srow,scol])
             else:
-                if breakdown[0] == "ep-capture":
-                    pass
                 cap = self.captured_pieces.pop()
+                if breakdown[-1] == "ep-capture":
+                    if self.half_move % 2 == 0:
+                        temp_row = srow + 1
+                    else:
+                        temp_row = srow -1
+                else:
+                    temp_row = srow
             
-                self.board[srow,scol] = cap
-                self.ascii_board[srow,scol] = cap.ascii
+                self.board[temp_row,scol] = cap
+                self.ascii_board[temp_row,scol] = cap.ascii
                 cap.pos=xmpz(0)
-                cap.pos[(srow<<3)+scol] =1
-                cap.grid(row=srow,column=scol)
+                cap.pos[(temp_row<<3)+scol] =1
+                cap.grid(row=temp_row,column=scol)
                 cap.lift()
                 if self.half_move % 2 == 0:
-                    self.black_positions[(srow<<3)+scol] = 1
+                    self.black_positions[(temp_row<<3)+scol] = 1
                 else:
-                    self.white_positions[(srow<<3)+scol] = 1
-                
+                    self.white_positions[(temp_row<<3)+scol] = 1
+                 
                 cap.update_legal_moves()
                         
             
@@ -313,15 +322,15 @@ class chessboard(tk.Frame):
         self.captured_pieces.push(piece)
         piece.grid_remove()
         
-        # tk.Button(container, bg= self.colour_scheme["white"], text="♛", font=["arial",15], command= lambda:[self.store_move(start,[row,col],piece.ascii,"q-"+move_type,captured),self.replace_piece("q",container,start,[row,col])]).grid(row=0,column=0, sticky= "nesw")
-        # tk.Button(container, bg= self.colour_scheme["black"], text="♜" ,font=["arial",15], command= lambda:[ self.replace_piece("r",container,start,[row,col]), self.store_move(start,[row,col],piece.ascii,"r-"+move_type,captured)]).grid(row=0,column=1, sticky= "nesw")
-        # tk.Button(container, bg= self.colour_scheme["black"], text="♝", font=["arial",15], command= lambda:[ self.replace_piece("b",container,start,[row,col]), self.store_move(start,[row,col],piece.ascii,"b-"+move_type,captured)]).grid(row=1,column=0, sticky= "nesw")
-        # tk.Button(container, bg= self.colour_scheme["white"], text="♞", font=["arial",15], command= lambda:[ self.replace_piece("n",container,start,[row,col]), self.store_move(start,[row,col],piece.ascii,"n-"+move_type,captured)]).grid(row=1,column=1, sticky= "nesw")
+        tk.Button(container, bg= self.colour_scheme["white"], text="♛", font=["arial",15], command= lambda:[self.store_move(start,[row,col],piece.ascii,"q-"+move_type,captured), self.replace_piece("q",container,start,[row,col])]).grid(row=0,column=0, sticky= "nesw")
+        tk.Button(container, bg= self.colour_scheme["black"], text="♜" ,font=["arial",15], command= lambda:[self.store_move(start,[row,col],piece.ascii,"r-"+move_type,captured), self.replace_piece("r",container,start,[row,col])]).grid(row=0,column=1, sticky= "nesw")
+        tk.Button(container, bg= self.colour_scheme["black"], text="♝", font=["arial",15], command= lambda:[self.store_move(start,[row,col],piece.ascii,"b-"+move_type,captured), self.replace_piece("b",container,start,[row,col])]).grid(row=1,column=0, sticky= "nesw")
+        tk.Button(container, bg= self.colour_scheme["white"], text="♞", font=["arial",15], command= lambda:[self.store_move(start,[row,col],piece.ascii,"n-"+move_type,captured), self.replace_piece("n",container,start,[row,col])]).grid(row=1,column=1, sticky= "nesw")
 
         self.active_colour = None
         
-        self.store_move(start,[row,col],piece.ascii,"q-"+move_type,captured)
-        self.replace_piece("q",container,start,[row,col])
+        # self.store_move(start,[row,col],piece.ascii,"q-"+move_type,captured)
+        # self.replace_piece("q",container,start,[row,col])
 
         # places a piece in the position of the pawn and corrects all the data structures to refelct this
 
@@ -373,12 +382,12 @@ class chessboard(tk.Frame):
         
         if self.half_move % 2 == 1:
             self.active_colour = "b"
-            if self.white_king.pos & self.black_can_take:
+            if self.white_king.pos & self.black_can_take and p != "":
                 self.reverse_move()
         else:
             self.active_colour ="w"
             self.full_move += 1
-            if self.black_king.pos & self.white_can_take:
+            if self.black_king.pos & self.white_can_take and p != "":
                 self.reverse_move()  
  
 

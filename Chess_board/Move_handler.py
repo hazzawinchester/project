@@ -25,6 +25,14 @@ class Move_handler():
     def get_cursor_pos(self,event):
         return min(7,max(0,(event.y_root-self.master.winfo_rooty()-self.master.border_width)//100)),min(7,max(0,(event.x_root-self.master.winfo_rootx()-self.master.border_width)//100))
 
+    def highlight_sqaure(self,row,col):
+        white = True
+        for a in self.master.grid_slaves(row =row,column =col):
+            
+            
+            a.config(bg=("#"+hex(int(int(self.master.colour_scheme["white"][1:],16) *0.5)%16777216).lstrip("0x")) if (row+col)%2==0 else ("#"+hex(int(int(self.master.colour_scheme["black"][1:],16)*0.5)%16777216).lstrip("0x")))
+        
+    
     def on_start(self, event):
         #documents the starting point of the piece so it can be returned if the move is invalid
         self.start_row,self.start_col = self.get_cursor_pos(event)        
@@ -40,7 +48,7 @@ class Move_handler():
                     if int(moves[-i]):
                         row,col = (i-1)//8,(i-1)%8
                         for a in self.master.grid_slaves(row =row,column =col):
-                            a.config(bg=("#"+hex(int(int(self.master.colour_scheme["white"][1:],16) *0.5)%16777216).lstrip("0x")) if (row+col)%2==0 else ("#"+hex(int(int(self.master.colour_scheme["black"][1:],16)*0.5)%16777216).lstrip("0x")))
+                            a.config(bg=("#"+hex(int(int(self.master.colour_scheme["white"][1:],16) *0.5)%16777216).lstrip("0x").zfill(6)) if (row+col)%2==0 else ("#"+hex(int(int(self.master.colour_scheme["black"][1:],16)*0.5)%16777216).lstrip("0x").zfill(6)))
         
         
         
@@ -85,7 +93,6 @@ class Move_handler():
             if move & (self.master.white_positions | self.master.black_positions):
                 move_type = "capture"
                 captured = self.master.board[row,col]
-                self.master.captured_pieces.push(captured)
                 captured_piece= captured.ascii
                 
             else:
@@ -103,33 +110,35 @@ class Move_handler():
                     r,c = row,col
 
                     if self.master.half_move % 2 == 1:
-                        self.master.board[r-1,c].grid_remove()
-                        self.master.board[r-1,c] = p.Piece(self.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
-                        self.master.ascii_board[r-1,c] = ""
-                        self.update_passanted(2**(((row-1)<<3)+col))
-                        self.master.black_positions[((row-1)<<3)+col] = 0
+                        self.master.white_positions[((row-1)<<3)+col] = 0
+                        r -=1
                     else:
-                        self.master.board[r+1,c].grid_remove()
-                        self.master.board[r+1,c] = p.Piece(self.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
-                        self.master.ascii_board[r+1,c] = ""
-                        self.update_passanted(2**(((row+1)<<3)+col))
                         self.master.black_positions[((row+1)<<3)+col] =0
+                        r+= 1
+                    self.master.board[r,c].grid_remove()
+                    self.master.board[r,c] = p.Piece(self.master,piece='',row=self.start_row,col=self.start_col,piece_type='')
+                    self.master.ascii_board[r,c] = ""
+                    self.update_passanted(2**(((r)<<3)+c))
                     self.master.old_passant = self.master.en_passant
                     self.master.en_passant = xmpz(0)
                     self.master.store_move([self.start_row,self.start_col],[row,col],"P","ep-capture","p")
-                    print(self.master.recent_moves)
+                    
                 elif not piece.has_moved and (row in [self.start_row-2,self.start_row+2]):
                     self.master.old_passant = self.master.en_passant
                     self.master.en_passant = xmpz(2**(((row-1)<<3)+col) if self.master.half_move % 2 == 1 else 2**(((row+1)<<3)+col) )
                     self.master.store_move([self.start_row,self.start_col],[row,col],piece.ascii,"double",captured_piece)
+                    
                 elif ((piece.pos[0:8] ^ 0) | (piece.pos[56:64] ^ 0)):
                     self.master.promote(piece,[self.start_row,self.start_col],move_type= "promo" if move_type == "quiet" else "promo-capture",captured=captured_piece)
                     promo = True
+                    self.master.old_passant = self.master.en_passant
+                    self.master.en_passant = xmpz(0)
+                    
                 else:
                     self.master.old_passant = self.master.en_passant
                     self.master.en_passant = xmpz(0)
                     self.master.store_move([self.start_row,self.start_col],[row,col],piece.ascii,move_type,captured_piece)
-                    
+                     
                 
             else:
                 self.master.old_passant = self.master.en_passant
@@ -191,12 +200,13 @@ class Move_handler():
         for i in self.master.piece_list:
             if (start & i.ghost_moves) | (end & i.ghost_moves):   
                 i.update_legal_moves()
-            elif i.ascii.lower() == "p" and ((self.master.en_passant & i.ghost_moves) | (self.master.old_passant & i.ghost_moves)) and(i.colour != ("w" if self.master.half_move % 2 == 1 else "b")):
+            elif i.ascii.lower() == "p" and ((self.master.en_passant & i.ghost_moves) | (self.master.old_passant & i.ghost_moves)):# and(i.colour != ("w" if self.master.half_move % 2 == 1 else "b")):
                 i.update_legal_moves()
             
         
         self.master.update_can_take("w")
         self.master.update_can_take("b")
+        
         i.master.black_king.update_legal_moves()
         i.master.white_king.update_legal_moves()
     
