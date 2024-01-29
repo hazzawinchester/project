@@ -13,7 +13,7 @@ class Queen(parent.Piece):
         self.ghost_moves = xmpz(0)
 
         square = int(math.log2(self.pos))
-        row,col = square//8,square%8
+        row,col = square//8,square%8 
         left,right,up,down,left_up,left_down,right_up,right_down,a = False,False,False,False,False,False,False,False,1
 
         while left==False or right==False or up==False or down==False or left_up==False or left_down==False or right_up==False or right_down==False:

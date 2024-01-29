@@ -39,7 +39,7 @@ class Pawn(parent.Piece):
                 self.ghost_moves[square2] =1
             elif not self.has_moved:
                 self.ghost_moves[square2] =1
-        else:
+        else: 
             self.ghost_moves[square1] =1
 
     def check_take(self,row,col):

@@ -12,9 +12,8 @@ class Alpha_Beta:
         pass
 
     def terminal(self, board):
-        #checks if both kings are still on the board
-        # return not kings.pos are valid
-        pass
+        return (board.white_king & board.black_can_take) or (board.black_king & board.white_can_take)
+        
 
     def possible_moves(self, board):
         #returns all possible moves

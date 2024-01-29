@@ -19,7 +19,7 @@ class Bishop(parent.Piece):
             this_right = col+a
             this_up = row-a
             this_down = row+a
-
+ 
             if this_left >=0:
                 if this_up >=0:
                     left_up = self.check_square((this_up<<3)+this_left,left_up)

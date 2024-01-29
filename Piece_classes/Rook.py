@@ -42,7 +42,7 @@ class Rook(parent.Piece):
             a+=1        
 """        
     def update_ghost_moves(self):
-        self.ghost_moves = [[100,100]]
+        self.ghost_moves = [[100,100]] 
         row,col = self.pos
         self.ghost_moves=  np.append(self.ghost_moves,[(a,col) for a in range(8)], axis=0)
         self.ghost_moves=  np.append(self.ghost_moves,[(row,a) for a in range(8)], axis=0)

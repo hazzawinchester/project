@@ -25,7 +25,7 @@ ep-capture              0101    5       %
 knight-promotion        1000    8       %
 bishop-promotion        1001    9       %
 rook-promotion          1010    10      %
-queen-promotion         1011    11      %
+queen-promotion         1011    11      % 
 knight-promo capture    1100    12      %
 bishop-promo capture    1101    13      %
 rook-promo capture      1110    14      %

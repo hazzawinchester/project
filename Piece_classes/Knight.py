@@ -17,7 +17,7 @@ class Knight(parent.Piece):
         down2 = row+2
         left1 = col-1
         left2 = col-2
-        right1 = col+1
+        right1 = col+1 
         right2 = col+2
 
         if col >=1:

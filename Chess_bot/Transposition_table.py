@@ -31,8 +31,12 @@ class Transpoisition():
         self.blacks_move = random.randint(1,2**64-1)
         self.castling = np.array([random.randint(1,2**64-1) for i in range(4)])
         self.passant_files = np.array([random.randint(1,2**64-1) for i in range(8)])
-        
-    def Hash(self,data):
+    
+    def initial_hash(self,board):
+        #Hash
+        pass
+    
+    def Hash(self,move):
         pass
         #hashes the data and returns a given index in the hash table
         

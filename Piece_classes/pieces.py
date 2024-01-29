@@ -3,6 +3,7 @@ from PIL import ImageTk, Image
 import numpy as np
 #from functools import lru_cache
 from gmpy2 import xmpz
+import math
 
 pieces = {'p':"♟",'n':"♞",'b':"♝",'r':"♜",'q':"♛",'k':"♚", "P":"♙", "N":"♘", "B":"♗", "R":"♖", "Q":"♕", "K":"♔", '':''}
 file_type = {"classic":"png","periodic":"png", "hidden":"png"}
@@ -76,10 +77,10 @@ class Piece(tk.Label):
         self.has_moved = 0
         self.legal_moves = xmpz(0)
         self.ghost_moves = (0)
-        
+         
     def __str__(self):
         rows ={7:"a",6:"b",5:"c",4:"d",3:"e",2:"f",1:"g",0:"h"}
-        return f"{self.ascii},{self.colour},{rows[self.pos[0]],self.pos[1]+1}"
+        return f"{math.log2(self.pos)}"
     
     def destroy(self):
         super().destroy()
@@ -93,12 +94,12 @@ class Piece(tk.Label):
     def grid_remove(self):
         super().grid_remove()
         self.ghost_moves = xmpz(0)
+        self.master.captured_pieces.push(self)
 
     
     def update_legal_moves(self):
         pass
-    def update_ghost_moves(self):
-        pass
+  
 
     def check_square(self,square,found= False):
             pos = xmpz(0)
