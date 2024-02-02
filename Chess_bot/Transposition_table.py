@@ -33,7 +33,7 @@ class Transpoisition():
         self.passant_files = np.array([random.randint(1,2**64-1) for i in range(8)])
     
     def initial_hash(self,board):
-        #Hash
+        #pawdwad
         pass
     
     def Hash(self,move):

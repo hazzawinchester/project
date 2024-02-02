@@ -23,7 +23,9 @@ class Stack:
         return False
     
     def peak(self):
-        return self.data[-1]
+        if self.length() >1:
+            return self.data[-1]
+        return 0
         
         # pieces = {1: "p", 2: 'n', 3: 'b', 5: 'r', 6: 'q', 4: 'k', 9: 'P', 10: 'N', 11: 'B', 13: 'R', 14: 'Q', 12: 'K', 0: 'nothing'}
         # binary_reversed = {7: 'h', 6: 'g', 5: 'f', 4: 'e', 3: 'd', 2: 'c', 1: 'b', 0: 'a'}
@@ -35,7 +37,7 @@ class Stack:
         
         
     def is_empty(self):
-        return len(self.data) == 0
+        return( len(self.data) == 0)
 
     def length(self):
         return len(self.data)

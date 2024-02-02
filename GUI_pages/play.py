@@ -13,8 +13,11 @@ class Chess_game(tk.Frame):
         
         ttk.Button(self,width=10, text = "Play", command = self.create_board).pack()
         ttk.Button(self,width=10, text = "Resign", command = self.delete_board).pack()
-        ttk.Button(self,width=10, text = "randomise", command = self.random_move).pack()
-        self.update_board = tk.Text(self,height = 1, width = 50, )
+        
+        self.CheckVar1 = tk.BooleanVar()
+        tk.Checkbutton(self, bg = "#4b4b4b", text = "Play against bot", variable = self.CheckVar1, onvalue = 1, offvalue = 0, command= self.random_move).pack()
+        #ttk.Button(self,width=10, text = "randomise", command = self.random_move).pack()
+        self.update_board = tk.Text(self,height = 1, width = 60, )
         self.update_button = tk.Button(self,text="import board using FEN", command=self.import_board)
         self.update_board.place(relx=0.5,rely=0.93, anchor="s")
         self.update_button.place(relx=0.5,rely=1, anchor="s")
@@ -39,4 +42,6 @@ class Chess_game(tk.Frame):
         self.create_board(FEN=str(inp))
   
     def random_move(self):
-        self.chessboard.make_random_moves(10)
+        while self.CheckVar1:
+            self.chessboard.make_random_moves(1)
+            

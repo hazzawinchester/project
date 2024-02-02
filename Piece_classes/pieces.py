@@ -5,9 +5,7 @@ import numpy as np
 from gmpy2 import xmpz
 import math
 
-pieces = {'p':"♟",'n':"♞",'b':"♝",'r':"♜",'q':"♛",'k':"♚", "P":"♙", "N":"♘", "B":"♗", "R":"♖", "Q":"♕", "K":"♔", '':''}
 file_type = {"classic":"png","periodic":"png", "hidden":"png"}
-values = {"p":100,"n":305,"b":333,"r":563,"q":950,"k":0,'':0}
 
 
 #https://en.wikipedia.org/wiki/Chess_piece_relative_value#:~:text=The%20best%20known%20system%20assigns,piece%20is%20very%20position%20dependent.
@@ -18,46 +16,50 @@ values = {"p":100,"n":305,"b":333,"r":563,"q":950,"k":0,'':0}
 
 class Piece(tk.Label):
     def __init__(self,master,piece,row,col,piece_type):
+        self.master = master
         # '' is used to hold an empty sqaure
-        
+        #print(piece)
         #types: ascii,secret,hidden,periodic,classic
-        if piece != '':
+        if piece != 0:
             if piece_type == "ascii":   
+                pieces = {self.master.bpawn:"♟",self.master.bknight:"♞",self.master.bbishop:"♝",self.master.brook:"♜",self.master.bqueen:"♛",self.master.bking:"♚",self.master.wpawn:"♙", self.master.wknight:"♘", self.master.wbishop:"♗", self.master.wrook:"♖", self.master.wqueen:"♕", self.master.wking:"♔", self.master.no_piece:''}
                 super().__init__(master,text = pieces[piece], font= ["arial",50], borderwidth=0,bg=master.colour_scheme["white"] if (row+col)%2==0 else master.colour_scheme["black"])
-                if piece.isupper():
-                    self.colour = "w"
+                if piece > 7:
+                    self.colour = 1
                 else:
-                    self.colour = "b"
+                    self.colour = 0
             elif piece_type == "secret":   
                 super().__init__(master,text = '    ', font= ["arial",35], borderwidth=0,bg=master.colour_scheme["white"] if (row+col)%2==0 else master.colour_scheme["black"])
-                if piece.isupper():
-                    self.colour = "w"
+                if piece > 7:
+                    self.colour = 1
                 else:
-                    self.colour = "b"
+                    self.colour = 0
                     
             elif piece_type == "hidden":
-                if piece.isupper():
+                if piece > 7:
                     # fetches the white image corelating to the piece
-                    self.colour ="w"
+                    self.colour = 1
                 else: 
                     #fetches the black image corelating to the piece
-                    self.colour = "b"
+                    self.colour = 0
                 self.img = Image.open(f"Pieces_img/{piece_type}/{piece_type}.{file_type[piece_type]}")
                 self.img = self.img.resize((75, 75))
                 self.img = ImageTk.PhotoImage(self.img)
                 super().__init__(master,borderwidth=0,image=self.img,bg="gray")
             else:
                 #checks if the pieces is white (.isupper() will be True)
-                if piece.isupper():
+                to_ascii = {1: "p", 2: 'n', 3: 'b', 5: 'r', 6: 'q', 4: 'k', 9: 'P', 10: 'N', 11: 'B', 13: 'R', 14: 'Q', 12: 'K'}
+                if piece > 7:
                     # fetches the white image corelating to the piece
-                    self.img = Image.open(f"Pieces_img/{piece_type}/{piece_type}w{piece.lower()}.{file_type[piece_type]}")
-                    self.colour ="w"
+                    
+                    self.img = Image.open(f"Pieces_img/{piece_type}/{piece_type}w{to_ascii[piece]}.{file_type[piece_type]}")
+                    self.colour = 1
                 else: 
                     #fetches the black image corelating to the piece
-                    self.img = Image.open(f"Pieces_img/{piece_type}/{piece_type}b{piece}.{file_type[piece_type]}")
+                    self.img = Image.open(f"Pieces_img/{piece_type}/{piece_type}b{to_ascii[piece]}.{file_type[piece_type]}")
                     if master.game_type =="2p":
                         self.img = self.img.transpose(Image.ROTATE_180)
-                    self.colour = "b"
+                    self.colour = 0
                     
                 #sets the image to a standard size and applys it to the object    
                 self.img = self.img.resize((90, 90))
@@ -69,24 +71,24 @@ class Piece(tk.Label):
             self.colour = None
 
         # piece attributes
-        self.master = master
         self.pos = xmpz(0)
         self.pos[(row<<3)+col]=1
-        self.ascii = piece
-        self.value = values[piece.lower() if piece != '' else '']
+        self.piece = piece
+        values = {self.master.bpawn:100,self.master.bknight:305,self.master.bbishop:333,self.master.brook:563,self.master.bqueen:950,self.master.bking:0,self.master.no_piece:0}
+        self.value = values[piece % 8]
         self.has_moved = 0
         self.legal_moves = xmpz(0)
         self.ghost_moves = (0)
          
     def __str__(self):
         rows ={7:"a",6:"b",5:"c",4:"d",3:"e",2:"f",1:"g",0:"h"}
-        return f"{math.log2(self.pos)}"
+        return f"{math.log2(self.pos),self.piece}"
     
     def destroy(self):
         super().destroy()
-        if self.ascii != '':
+        if self.piece != 0:
             self.master.piece_list = np.delete(self.master.piece_list, np.where(self.master.piece_list == self))
-            if self.colour == "w":
+            if self.colour: # checks if white
                 self.master.white_pieces = np.delete(self.master.white_pieces, np.where(self.master.white_pieces == self))
             else:
                 self.master.black_pieces = np.delete(self.master.black_pieces, np.where(self.master.black_pieces == self))
@@ -104,7 +106,7 @@ class Piece(tk.Label):
     def check_square(self,square,found= False):
             pos = xmpz(0)
             pos[square]=1
-            if self.colour =="w":
+            if self.colour:
                 enemy = self.master.black_positions
                 friend = self.master.white_positions
             else:

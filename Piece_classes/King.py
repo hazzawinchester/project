@@ -8,7 +8,7 @@ class King(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)
         self.legal_moves = xmpz(0)
-        if piece.isupper(): # passed by reference so it stays up to date
+        if self.colour: # passed by reference so it stays up to date
             self.master.white_king = self
         else:
             self.master.black_king = self
@@ -21,7 +21,7 @@ class King(parent.Piece):
 
         
     def update_legal_moves(self):
-        if self.colour == "w":
+        if self.colour:
             self.friend = self.master.white_positions
             self.enemy_can_take = self.master.black_can_take
         else:
@@ -33,11 +33,13 @@ class King(parent.Piece):
         bottom = ((896 << (pos % 8)) & 65280) <<8
         current = ((640 << (pos % 8)) & 65280) 
 
-        if pos >7:
+        if pos >7 and pos < 56:
             self.ghost_moves = ((current) << 8*((pos-8) //8)) | ((top) << 8*((pos-8) //8)) | ((bottom) << 8*((pos-8) //8))
-        else:
+        elif pos <= 7:
             self.ghost_moves = ((current) >> 8) |  ((bottom) >> 8)
-            
+        else:
+            self.ghost_moves = ((current) << 8*((pos-8) //8)) | ((top) << 8*((pos-8) //8))
+        
         self.legal_moves = self.ghost_moves & ~(self.friend | self.enemy_can_take)
         
         #castling

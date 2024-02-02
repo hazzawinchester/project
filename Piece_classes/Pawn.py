@@ -8,7 +8,7 @@ class Pawn(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)
         self.has_moved = 0
-        if piece.isupper(): # it works as they are passed by reference
+        if self.colour: # it works as they are passed by reference
             self.enemy = self.master.black_positions
             self.friend = self.master.white_positions
         else:
@@ -22,7 +22,7 @@ class Pawn(parent.Piece):
         square = int(math.log2(self.pos))
         row,col = square//8,square%8  
 
-        if self.colour == "w":
+        if self.colour:
             self.check_forward(((row-1)<<3)+col,(row-2<<3)+col)
             self.check_take(row-1,col)
         else:

@@ -15,6 +15,13 @@ knight  010    2
 pawn    001    1
 nothing 000    0
 
+bp = 1001 = 1
+bk = 0010 = 2
+bb = 0011 = 3
+br = 0101 = 5
+bq = 0110 = 6
+bk = 0100 = 4
+
 move types:
 quiet moves             0000    0       %  a move which doesn't alter matarial
 double pawn push        0001    1       %

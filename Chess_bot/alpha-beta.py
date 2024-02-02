@@ -9,6 +9,9 @@ class Alpha_Beta:
         
         
     def evaluate(self, board):
+        # checks if board has already been visited
+        # if not applies {eval function}
+        # then saves board and its eval to transposition
         pass
 
     def terminal(self, board):
@@ -42,7 +45,7 @@ class Alpha_Beta:
         if whites_turn: 
             maxEva= -float("infinity")        
             for move in self.possible_moves(board):
-                eva= self.alpha_beta(self.get_state(board,move), depth-1, alpha, beta, self.capture(move), False)  
+                eva= self.alpha_beta(self.get_state(board,move), depth-1, alpha, beta, self.is_capture(move), False)  
                 maxEva = max(maxEva, eval)
                 alpha = max(alpha, eval)
                 if beta <= alpha:
@@ -52,7 +55,7 @@ class Alpha_Beta:
         else:
             minEva= float("infinity")
             for move in self.possible_moves(board):
-                eva= self.alpha_beta(self.get_state(board,move), depth-1, alpha, beta, self.capture(move) , True)  
+                eva= self.alpha_beta(self.get_state(board,move), depth-1, alpha, beta, self.is_capture(move) , True)  
                 minEva= min(minEva, eva)   
                 beta= min(beta, eva)  
                 if beta<=alpha:
@@ -60,6 +63,9 @@ class Alpha_Beta:
             return minEva 
         
     def get_best_move(self, board,thinking_time):
+        # uses the best move from the previous search to start the next search depth
+        # depth increases with each iteration until time has been exceeded
+        
         best_move = None
         alpha = float('-inf')
         beta = float('inf')
