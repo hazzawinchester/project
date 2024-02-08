@@ -36,10 +36,12 @@ class Window(tk.Tk):
         self.current_frame = name
         frame.tkraise()
     
+    # adds a frame to a dictionary which contains all frames and adds button to the navigation bar for this frame so they can be displayed later
     def add_frame(self,frame,name):
             self.frames[name] = frame 
             frame.grid(row=0,column=1,sticky = "nesw",rowspan=2)
-            tk.Button(self.navigator, text = name, font = ("arial",10), bg= "Gray",activebackground="#5b5b5b", command = lambda : (self.lastpage.append(self.current_frame) if name != self.current_frame else None,self.show_frame(name))).pack(fill="x")
+            tk.Button(self.navigator, text = name, font = ("arial",10), bg= "Gray",activebackground="#5b5b5b", command = lambda :
+                (self.lastpage.append(self.current_frame) if name != self.current_frame else None,self.show_frame(name))).pack(fill="x")
             
     def display_pfp(self):
         if self.user == None:
