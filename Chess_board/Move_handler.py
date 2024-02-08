@@ -11,10 +11,11 @@ pieces_revesed = {'♟': 'p', '♞': 'n', '♝': 'b', '♜': 'r', '♛': 'q', '�
 
 #drag handler adds the drag functionality to all pieces by giving them these the following methods
 #this allows pieces to be added dynamicaly whenever needed
-class Move_handler():
+class Move_handler:
     def __init__(self,master):
         self.master = master
         self.start_row,self.start_col = 0,0
+        self.hash = 0
 
 
     def add_dragable(self, widget):
@@ -35,7 +36,8 @@ class Move_handler():
     
     def on_click(self, event):
         #documents the starting point of the piece so it can be returned if the move is invalid
-        self.start_row,self.start_col = self.get_cursor_pos(event)        
+        self.start_row,self.start_col = self.get_cursor_pos(event)
+        self.start_pos = 2**((self.start_row<<3)+self.start_col)      
         
         
         
@@ -51,6 +53,7 @@ class Move_handler():
                         a.config(bg=("#"+hex(int(int(self.master.colour_scheme["white"][1:],16) *0.5)%16777216).lstrip("0x").zfill(6)) if (row+col)%2==0 else ("#"+hex(int(int(self.master.colour_scheme["black"][1:],16)*0.5)%16777216).lstrip("0x").zfill(6)))
         
                     b = event.widget.legal_moves.bit_scan1(b+1)
+            #self.master.convert_for_bot()
         
         
         
@@ -96,7 +99,18 @@ class Move_handler():
                 move_type = "capture"
                 captured = self.master.board[row,col]
                 captured_piece= captured.piece
-                
+                if (captured_piece %8) == self.master.brook:
+                    if not captured.has_moved:
+                        if captured.colour:
+                            if captured.pos < self.master.white_king.pos:
+                                self.master.available_castle[2] = 0
+                            else:
+                                self.master.available_castle[3] = 0
+                        else:
+                            if captured.pos < self.master.black_king.pos:
+                                self.master.available_castle[0] = 0
+                            else:
+                                self.master.available_castle[1] = 0
             else:
                 move_type = "quiet"
                 captured_piece = 0
@@ -143,8 +157,33 @@ class Move_handler():
                     self.master.en_passant = xmpz(0)
                     self.master.store_move([self.start_row,self.start_col],[row,col],piece.piece,move_type,captured_piece)
                      
-                
+            elif (piece.piece % 8)  == self.master.bking:
+                if not piece.has_moved:
+                    if piece.colour:
+                        self.master.available_castle %= 4
+                    else:
+                        self.master.available_castle[0]=0
+                        self.master.available_castle[1]=0
+                if move == self.start_pos << 2:
+                    print("right")
+                elif move == self.start_pos >> 2:
+                    print("left")
+                else:
+                    if not self.master.move_stored:
+                        self.master.store_move([self.start_row,self.start_col],[row,col],piece.piece,move_type,captured_piece)
             else:
+                if (piece.piece % 8)  == self.master.brook:
+                    if not piece.has_moved:
+                        if piece.colour:
+                            if self.start_col < int(math.log2(self.master.white_king.pos)) % 8:
+                                self.master.available_castle[2] = 0
+                            else:
+                                self.master.available_castle[3] = 0
+                        else:
+                            if self.start_col < int(math.log2(self.master.black_king.pos)) % 8:
+                                self.master.available_castle[0] = 0
+                            else:
+                                self.master.available_castle[1] = 0
                 self.master.old_passant = self.master.en_passant
                 self.master.en_passant = xmpz(0)
                 if not self.master.move_stored:
@@ -167,7 +206,10 @@ class Move_handler():
                     self.master.active_colour = 1
                     self.master.full_move += 1
                     if self.master.black_king.pos & self.master.white_can_take:
-                        self.master.reverse_move()                
+                        self.master.reverse_move()        
+            #self.master.transposition.initial_hash(self.hash)   
+            self.hash = self.master.transposition.hash(self.master.move,self.hash) 
+            #print(self.hash)
                 
         else:
             piece.grid(row=self.start_row,column=self.start_col)
@@ -210,7 +252,7 @@ class Move_handler():
         for i in self.master.piece_list:
             if (start & i.ghost_moves) | (end & i.ghost_moves):   
                 i.update_legal_moves()
-            elif (i.piece & 8) == self.master.bpawn and ((self.master.en_passant & i.ghost_moves) | (self.master.old_passant & i.ghost_moves)):# and(i.colour != ("w" if self.master.half_move % 2 == 1 else "b")):
+            elif (i.piece % 8) == self.master.bpawn and ((self.master.en_passant & i.ghost_moves) | (self.master.old_passant & i.ghost_moves)):# and(i.colour != ("w" if self.master.half_move % 2 == 1 else "b")):
                 i.update_legal_moves()
             
         

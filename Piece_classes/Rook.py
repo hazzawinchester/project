@@ -8,13 +8,13 @@ class Rook(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)
 
-
     def update_legal_moves(self):  # 2.6*10^-6 per move max
         self.legal_moves = xmpz(0)
         self.ghost_moves = xmpz(0)
         square = int(math.log2(self.pos))
         row,col = square//8,square%8
         left,right,up,down,a = False,False,False,False,1
+        
         while left==False or right==False or up==False or down==False:
             if left == False:
                 if col-a >=0:
@@ -40,6 +40,15 @@ class Rook(parent.Piece):
                 else:
                     down = True
             a+=1        
+        # if self.has_moved == 1:
+        #     self.master.available_castle[self.side] = 0
+
+            
+            
+            
+            
+            
+            
 """        
     def update_ghost_moves(self):
         self.ghost_moves = [[100,100]] 

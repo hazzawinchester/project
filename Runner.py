@@ -1,12 +1,12 @@
-from GUI_pages import master,home,Rules,play,settings,variants
-
-import time
-
+from GUI_pages import master,home,Rules,play,settings,variants    
 
 # runner that collects all GUI elements to assembles them into the interface
 window = master.Window()
 
+#creates a cpeceific instance of the chesspage so it can be called later
 chess = play.Chess_game(window,"ascii")
+
+# adds all the pages to the navigation bar
 window.add_frame(home.Home_page(window),"Home")
 window.add_frame(Rules.Rules(window),"Rules")
 window.add_frame(chess,"Play")
@@ -16,7 +16,6 @@ window.add_frame(settings.Settings_page(window),"Settings")
 #window.add_frame(sign_in.Sign_in_page(window),"Sign in")
 
 window.show_frame("Play")
-chess.create_board()
 
 window.mainloop() 
 

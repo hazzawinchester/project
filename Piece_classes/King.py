@@ -10,8 +10,12 @@ class King(parent.Piece):
         self.legal_moves = xmpz(0)
         if self.colour: # passed by reference so it stays up to date
             self.master.white_king = self
+            self.friend = self.master.white_positions
+            self.enemy_can_take = self.master.black_can_take
         else:
             self.master.black_king = self
+            self.friend = self.master.black_positions
+            self.enemy_can_take = self.master.white_can_take
 
     def destroy(self):
         super().destroy()
@@ -21,12 +25,6 @@ class King(parent.Piece):
 
         
     def update_legal_moves(self):
-        if self.colour:
-            self.friend = self.master.white_positions
-            self.enemy_can_take = self.master.black_can_take
-        else:
-            self.friend = self.master.black_positions
-            self.enemy_can_take = self.master.white_can_take
 
         pos = int(math.log2(self.pos))
         top =  ((896 << (pos % 8)) & 65280) >> 8
@@ -43,8 +41,30 @@ class King(parent.Piece):
         self.legal_moves = self.ghost_moves & ~(self.friend | self.enemy_can_take)
         
         #castling
+
+          
         if not self.has_moved:
             row = (126 << (8*((pos) //8)))
+            left  = (14 << (8*((pos) //8)))
+            right = (96 << (8*((pos) //8)))
+            if self.colour:
+                if self.master.available_castle[3] and not (right & (self.master.white_positions | self.master.black_positions | self.enemy_can_take)):
+                    self.legal_moves |= 4611686018427387904
+                
+                if self.master.available_castle[2] and not (left & (self.master.white_positions | self.master.black_positions | self.enemy_can_take)):
+                    self.legal_moves |= 288230376151711744
+            else:
+                if self.master.available_castle[1] and not (right & (self.master.white_positions | self.master.black_positions | self.enemy_can_take)):
+                    self.legal_moves |= 64
+                
+                if self.master.available_castle[0] and not (left & (self.master.white_positions | self.master.black_positions | self.enemy_can_take)):
+                    self.legal_moves |= 4
+                    
+            
+            
+            
+            
+            
             if not (row & ((self.master.white_positions | self.master.black_positions | self.enemy_can_take) ^ self.pos)):
                 self.legal_moves |= (self.pos << 2) | (self.pos >> 2)
             

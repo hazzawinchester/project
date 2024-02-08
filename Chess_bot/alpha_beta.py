@@ -1,21 +1,21 @@
 import math as maths
+import numpy as np
 import gmpy2
-import Chess_bot.Transposition_table as Transposition_table
 import time
 
 class Alpha_Beta:
-    def __init__(self):
-        self.transposition = Transposition_table.Transpoisition()
+    def __init__(self,master):
+        self.master = master        
         
-        
-    def evaluate(self, board):
+    def evaluate(self, board, hash):
+        new_hash = self.master.transposition
         # checks if board has already been visited
         # if not applies {eval function}
         # then saves board and its eval to transposition
         pass
 
     def terminal(self, board):
-        return (board.white_king & board.black_can_take) or (board.black_king & board.white_can_take)
+        return (board.white_king & board.black_can_take) | (board.black_king & board.white_can_take)
         
 
     def possible_moves(self, board):
@@ -24,6 +24,7 @@ class Alpha_Beta:
 
     def get_state(self, board,move):
         #returns the state of the board after a move
+        #returns position of pieces, moves, castling
         pass
 
     def is_capture(self, move):
@@ -39,8 +40,10 @@ class Alpha_Beta:
         pass
     
     def alpha_beta(self,board, depth, alpha, beta,was_capture, whites_turn):
+        pieces,hash = board
+        
         if depth >0 or self.terminal(board) and not was_capture:
-            return self.evaluate(board) 
+            return self.evaluate(board,hash) 
         
         if whites_turn: 
             maxEva= -float("infinity")        
@@ -62,7 +65,7 @@ class Alpha_Beta:
                     break          
             return minEva 
         
-    def get_best_move(self, board,thinking_time):
+    def get_best_move(self, board,thinking_time,hash):
         # uses the best move from the previous search to start the next search depth
         # depth increases with each iteration until time has been exceeded
         
@@ -70,27 +73,33 @@ class Alpha_Beta:
         alpha = float('-inf')
         beta = float('inf')
 
+        moves = np.array([])
+        
         depth =1
         start = time.time()
         while time_elapsed <= thinking_time:
             for move in board.legal_moves:
-                if board.active_colour == "w":
+                if board.active_colour == 1:
 
-                    eva = self.alpha_beta(self.get_state(board,move), depth-1, alpha, beta, False)  
+                    eva = self.alpha_beta(self.get_state(board,move,hash), depth-1, alpha, beta, False)  
 
                     if eva > max_eval:
                         max_eval = eval
                         best_move = move
 
                     alpha = max(alpha, eva)
+                    
+                    move = np.append(move,np.array([move,eva]))
                 else:
-                    eva = self.alpha_beta(self.get_state(board,move), depth-1, alpha, beta, True)  
+                    eva = self.alpha_beta(self.get_state(board,move,hash), depth-1, alpha, beta, True)  
 
                     if eva < min_eval:
                         min_eval = eval
                         best_move = move
 
                     beta = min(beta, eva)
+                    
+                    move = np.append(move,np.array([move,eva]))
 
                 time_elapsed = time.time() - start
                 

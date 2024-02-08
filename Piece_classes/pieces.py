@@ -21,8 +21,12 @@ class Piece(tk.Label):
         #print(piece)
         #types: ascii,secret,hidden,periodic,classic
         if piece != 0:
-            if piece_type == "ascii":   
-                pieces = {self.master.bpawn:"♟",self.master.bknight:"♞",self.master.bbishop:"♝",self.master.brook:"♜",self.master.bqueen:"♛",self.master.bking:"♚",self.master.wpawn:"♙", self.master.wknight:"♘", self.master.wbishop:"♗", self.master.wrook:"♖", self.master.wqueen:"♕", self.master.wking:"♔", self.master.no_piece:''}
+            if piece_type == "ascii":
+                try:
+                    pieces = {self.master.bpawn:"♟",self.master.bknight:"♞",self.master.bbishop:"♝",self.master.brook:"♜",self.master.bqueen:"♛",self.master.bking:"♚",self.master.wpawn:"♙", self.master.wknight:"♘", self.master.wbishop:"♗", self.master.wrook:"♖", self.master.wqueen:"♕", self.master.wking:"♔", self.master.no_piece:''}
+                except:
+                    pieces = {self.master.bpawn:"♟", self.master.wpawn:"♙"}
+                    
                 super().__init__(master,text = pieces[piece], font= ["arial",50], borderwidth=0,bg=master.colour_scheme["white"] if (row+col)%2==0 else master.colour_scheme["black"])
                 if piece > 7:
                     self.colour = 1
@@ -74,7 +78,10 @@ class Piece(tk.Label):
         self.pos = xmpz(0)
         self.pos[(row<<3)+col]=1
         self.piece = piece
-        values = {self.master.bpawn:100,self.master.bknight:305,self.master.bbishop:333,self.master.brook:563,self.master.bqueen:950,self.master.bking:0,self.master.no_piece:0}
+        try:
+            values = {self.master.bpawn:100,self.master.bknight:305,self.master.bbishop:333,self.master.brook:563,self.master.bqueen:950,self.master.bking:0,self.master.no_piece:0}
+        except:
+            values = {1:100}
         self.value = values[piece % 8]
         self.has_moved = 0
         self.legal_moves = xmpz(0)

@@ -9,7 +9,7 @@ class Chess_game(tk.Frame):
         self.master = master
         
         self.piece_type = piece_type
-        self.colour_scheme = ["#e2bd8d","#300659"]
+        self.colour_scheme = ["#e2bd8d","#5e2496"]
         
         ttk.Button(self,width=10, text = "Play", command = self.create_board).pack()
         ttk.Button(self,width=10, text = "Resign", command = self.delete_board).pack()

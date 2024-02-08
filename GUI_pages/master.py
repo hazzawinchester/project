@@ -8,7 +8,7 @@ class Window(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
         
         self.title("Chess")
-        self.geometry("1000x1000")
+        self.geometry("1000x900")
         #self.state("zoomed")
         self.grid_rowconfigure(0, weight = 1)
         self.grid_rowconfigure(1, weight = 60)
