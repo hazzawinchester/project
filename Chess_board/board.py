@@ -6,6 +6,7 @@ from Chess_board import Stack,Move_handler
 from gmpy2 import xmpz
 import math
 import time
+import re
 import random
 
 
@@ -15,7 +16,7 @@ import random
 class chessboard(tk.Frame):
     def __init__(self, master=None,FEN="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",stack=[],piece_type="classic", game_type="2p", colour_scheme=["#e2bd8d","#421e00"], border_width = 35):
         super().__init__(master,borderwidth=border_width, bg=colour_scheme[1])
-        
+
         self.initialise_constants()
         
         self.master = master
@@ -28,13 +29,9 @@ class chessboard(tk.Frame):
         self.captured_pieces = Stack.Stack()
         {self.recent_moves.push(int(i)) for i in stack}
 
-        white = colour_scheme[0]
-        black =colour_scheme[1]
-        self.colour_scheme = {"white": white, "black": black}
+        self.colour_scheme = {"white": colour_scheme[0], "black": colour_scheme[1]}
 
         self.move_handler = Move_handler.Move_handler(self)
-        self.old_passant = 0
-
         
         self.piece_board = np.zeros((8,8),dtype=int)
         self.FEN_extractor(FEN) #
@@ -55,9 +52,7 @@ class chessboard(tk.Frame):
         
         self.transposition = Transposition_table.Transpoisition(self)
         self.bot = alpha_beta.Alpha_Beta(self)
-        
-        self.convert_for_bot()
-                
+                        
     def __str__(self): 
         return f"{self.convert_into_fen()}"
     
@@ -105,6 +100,8 @@ class chessboard(tk.Frame):
         self.black_king = None
         self.white_king = None   
         self.available_castle = xmpz(0)
+        self.en_passant = xmpz(0)
+        self.old_passant = xmpz(0)
         
     # creates the tkinter "widgets" corresponding to each piece using their classes
     # then updates the board structures to reflect these pieces and places the piece on the GUI
@@ -166,30 +163,11 @@ class chessboard(tk.Frame):
 
     #creates a 8*8 grid of coloured squares to serve as the board being played on
     def board_background(self):
-        white = self.colour_scheme["white"]
-        black = self.colour_scheme["black"]
         for row in range(8):
             for col in range(8):
-                squares = tk.Frame(self, bg= white if (row+col)%2==0 else black ,width=100, height=100, borderwidth=4)
-                squares.grid(row=row, column=col)
+                squares = tk.Frame(self, bg= self.colour_scheme["white"] if (row+col)%2==0 else self.colour_scheme["black"] ,width=100, height=100, borderwidth=0)
+                squares.grid(row=row, column=col, sticky="nesw")
     
-    #translates the FEN string into a 2D array of the pieces in ther respective positions (black at the top/start of the array)
-    def make_array_of_pieces(self,board):
-        pieces = {'p': self.bpawn, 'n': self.bknight, 'b': self.bbishop, 'r': self.brook, 'q': self.bqueen, 'k': self.bking, 'P': self.wpawn, 'N': self.wknight, 'B': self.wbishop, 'R': self.wrook, 'Q': self.wqueen, 'K': self.wking, '': self.no_piece}
-        temp = board.split("/")
-        for i in range(8):
-            if temp[i].isalpha():
-                row = [pieces[a] for a in temp[i]]
-                self.piece_board[i] = np.array(row)
-            elif not(temp[i].isnumeric()):
-                row = []
-                for a in temp[i]:
-                    if a.isalpha():
-                        row.append(pieces[a])
-                    else:
-                        for z in range(int(a)):
-                            row.append(0)
-                self.piece_board[i] = np.array(row)
 
     # creates 2 64 bit numbers to represent all the squares that each side attacks
     # this is then used to calculate check and checkmate later on
@@ -198,15 +176,15 @@ class chessboard(tk.Frame):
         if colour: # black is 0 which is False in pyhton
             self.white_can_take = xmpz(0)
             for i in self.white_pieces:
-                if i.piece == self.wpawn:
-                    self.white_can_take |= (((column << (int(math.log2(i.pos))%8)) ^ ((2**64)-1)) & i.ghost_moves)
+                if i.piece == self.wpawn:# removes any forward moves the pawn can make as they do not threaten the king
+                    self.white_can_take |= ((~(column << (int(math.log2(i.pos))%8))) & i.ghost_moves) 
                 else:
-                    self.white_can_take |= i.ghost_moves
-        else:
+                    self.white_can_take |= i.ghost_moves # adds all possible moves that could threaten the kingto the bitboard
+        else: # same as above but performed on blacks pieces.
             self.black_can_take = xmpz(0)
             for i in self.black_pieces:
                 if i.piece == self.bpawn:
-                    self.black_can_take |= (((column << (int(math.log2(i.pos))%8)) ^ ((2**64)-1)) & i.ghost_moves) # makes a mask with 0s int the column where the pawn is in order to make sure non capture moves arents added
+                    self.black_can_take |= ((~(column << (int(math.log2(i.pos))%8))) & i.ghost_moves) 
                 else:
                     self.black_can_take |= i.ghost_moves
                     
@@ -225,23 +203,23 @@ class chessboard(tk.Frame):
     
     # removes last move from the stack of moves and reverses it updating the GUI to show this
     def reverse_move(self):
-        pieces = {1: "p", 2: 'n', 3: 'b', 5: 'r', 6: 'q', 4: 'k', 9: 'P', 10: 'N', 11: 'B', 13: 'R', 14: 'Q', 12: 'K', 0: 'nothing'}
-        types = {0: 'quiet', 1: 'double', 2: 'king-side', 3: 'queen-side', 4: 'capture', 5: 'ep-capture', 8: 'n-promo', 9: 'b-promo', 10: 'r-promo', 11: 'q-promo', 12: 'n-promo-capture', 13: 'b-promo-capture', 14: 'r-promo-capture', 15: 'q-promo-capture'}
-
-        move = self.recent_moves.pop()
+        move = self.recent_moves.pop() # returns false if the stack is empty
         if move:
-            out = str(bin(move)[2:].zfill(24))
-            breakdown = [int(out[:4],2), int(out[4:8],2), [(int(out[8:11],2)),(int(out[11:14],2))], [(int(out[14:17],2)),(int(out[17:20],2))], int(out[20:],2)]
-                # 0 - piece captured, 1- piece moved, 2- start square, 3- end square, 4 move type
+            out = str(bin(move)[2:].zfill(24)) # normalises the number into a sting containing 24 bits
+            
+            # converts the string into an array holding all decoded information about the move
+            breakdown = [int(out[:4],2), int(out[4:8],2), [(int(out[8:11],2)),(int(out[11:14],2))],
+                         [(int(out[14:17],2)),(int(out[17:20],2))], int(out[20:],2)]
             erow,ecol = breakdown[2]
             srow,scol = breakdown[3]
             
-            if breakdown[-1] >= 8: #ahdaiwbdaiwhdoiawhdoawjdoijadoijaodjawodjawoidjawoj IT NO WORK
-                self.board[srow,scol].destroy()
+            if breakdown[-1] >= 8: # checks if the move is a promotion and 
+                self.board[srow,scol].destroy() # removed promoted piece
                 piece = self.captured_pieces.pop()
             else:
                 piece = self.board[srow,scol]
             
+            # updates the gui to show the piece has returned to is origional square 
             self.board[erow,ecol].destroy()
             self.board[erow,ecol] = piece
             self.piece_board[erow,ecol] = piece.piece
@@ -249,15 +227,18 @@ class chessboard(tk.Frame):
             piece.lift()
             piece.pos = xmpz(0)
             piece.pos[(erow<<3)+ecol] =1
+           
+           
             if self.piece_type in ["ascii","secret"]:
                 piece.config(bg= self.colour_scheme["white"] if (erow+ecol)%2==0 else self.colour_scheme["black"])
                     
             piece.has_moved -= 1
             self.half_move -= 1
             
+            # checks if last move was a double pawn push for en passant
             self.old_passant = self.en_passant
             previous = str(bin(self.recent_moves.peak())[2:].zfill(24))
-            if types[int(previous[20:],2)] == "double":
+            if int(previous[20:],2) == 1:
                 row,col = (int(previous[8:11],2)),(int(previous[11:14],2))
 
                 self.en_passant = xmpz(2**(((row-1)<<3)+col) if self.half_move % 2 == 1 else 2**(((row+1)<<3)+col))
@@ -266,13 +247,12 @@ class chessboard(tk.Frame):
                 self.en_passant =xmpz(0)
 
             
-            if breakdown[0] == 0: # CHANGE TO ENCORPORTATE PROMOTE
+            if breakdown[0] == 0: # checks if quiet move
+                # replaces with empty piece if none taken
                 self.replace_piece(0,tk.Label(self),[erow,ecol],[srow,scol])
-            # elif "promo" in breakdown[0]:
-            #     pass
             else:
                 cap = self.captured_pieces.pop()
-                if breakdown[-1] == 5:
+                if breakdown[-1] == 5: # accounts for ep capture when replacing piece
                     if self.half_move % 2 == 0:
                         temp_row = srow + 1
                     else:
@@ -287,9 +267,12 @@ class chessboard(tk.Frame):
                 cap.grid(row=temp_row,column=scol)
                 cap.lift()
                 if self.half_move % 2 == 0:
+                    self.black_pieces = np.append(self.black_pieces,cap)
                     self.black_positions[(temp_row<<3)+scol] = 1
                 else:
+                    self.white_pieces = np.append  (self.white_pieces,cap)
                     self.white_positions[(temp_row<<3)+scol] = 1
+                self.piece_list = np.append(self.piece_list,cap)
                  
                 cap.update_legal_moves()
                         
@@ -308,15 +291,44 @@ class chessboard(tk.Frame):
             piece.update_legal_moves()
             self.move_handler.update_affected_pieces(2**(erow*8+ecol),2**(srow*8+scol))
     
+
+    #regex expression to check the format of the fen string
+    def is_valid_fen(self, fen):
+        fen_pattern = re.compile(
+            r'^([rnbqkpRNBQKP1-8]{1,8}/){7}[rnbqkpRNBQKP1-8]{1,8} [wb] (-|K?Q?k?q?) (-|[a-h][2-7]) \d+ \d+$'
+        )
+        return bool(fen_pattern.match(fen))
+    
     # converts an input from FEN string to the corresponding data used to represent it in this program
     def FEN_extractor(self,fen):
-        fen = fen.split(" ")
-        self.make_array_of_pieces(fen[0])
-        self.active_colour = 1 if fen[1] == "w" else 0
-        self.convert_castling(fen[2],True)
-        self.en_passant = xmpz(self.convert_from_binary(fen[3]))
-        self.half_move = int(fen[4])
-        self.full_move = int(fen[5])
+        if self.is_valid_fen(fen):
+            fen = fen.split(" ")
+            self.make_array_of_pieces(fen[0]) # creats board from string
+            self.active_colour = 1 if fen[1] == "w" else 0 # 1 represents that it is whites turn to move
+            self.convert_castling(fen[2],True) # updates integer representing castling rights
+            self.en_passant = xmpz(self.convert_from_binary(fen[3])) # holds the index of the en passant square
+            self.half_move = int(fen[4]) # holds half move count for 50 move rule
+            self.full_move = int(fen[5]) # holds number of times black has made a move
+        else:
+            tk.messagebox.showinfo(title="ERROR", message="invalid FEN string input")
+            
+    #translates the FEN string into a 2D array of the pieces in ther respective positions (black at the top/start of the array)
+    def make_array_of_pieces(self,board):
+        pieces = {'p': self.bpawn, 'n': self.bknight, 'b': self.bbishop, 'r': self.brook, 'q': self.bqueen, 'k': self.bking, 'P': self.wpawn, 'N': self.wknight, 'B': self.wbishop, 'R': self.wrook, 'Q': self.wqueen, 'K': self.wking, '': self.no_piece}
+        temp = board.split("/")
+        for i in range(8):
+            if temp[i].isalpha():
+                row = [pieces[a] for a in temp[i]]
+                self.piece_board[i] = np.array(row)
+            elif not(temp[i].isnumeric()):
+                row = []
+                for a in temp[i]:
+                    if a.isalpha():
+                        row.append(pieces[a])
+                    else:
+                        for z in range(int(a)):
+                            row.append(0)
+                self.piece_board[i] = np.array(row)
         
     # converts the current board position into a FEN string
     def convert_into_fen(self):
@@ -357,12 +369,13 @@ class chessboard(tk.Frame):
                     temp += rev_val[i]
             return temp if temp != "" else "-"
 
-
+    # converts ep square into a number for the program
     def convert_from_binary(self,move):
         if move == '-':
             return 0
         return 2**((8-int(move[1]))*8+ self.binary[move[0]])
     
+    # converts ep square back into binary notation form
     def convert_to_binary(self,move):
         if move:
             move = int(math.log2(move))
@@ -385,7 +398,9 @@ class chessboard(tk.Frame):
         #self.captured_pieces.push(piece)
         piece.grid_remove()
         
-        tk.Button(container, bg= self.colour_scheme["white"], text="♛", font=["arial",15], command= lambda:[self.store_move(start,[row,col],piece.piece,"q-"+move_type,captured), self.replace_piece(self.bqueen,container,start,[row,col])]).grid(row=0,column=0, sticky= "nesw")
+        tk.Button(container, bg= self.colour_scheme["white"], text="♛", font=["arial",15], command= 
+                  lambda:[self.store_move(start,[row,col],piece.piece,"q-"+move_type,captured), 
+                          self.replace_piece(self.bqueen,container,start,[row,col])]).grid(row=0,column=0, sticky= "nesw")
         tk.Button(container, bg= self.colour_scheme["black"], text="♜" ,font=["arial",15], command= lambda:[self.store_move(start,[row,col],piece.piece,"r-"+move_type,captured), self.replace_piece(self.brook,container,start,[row,col])]).grid(row=0,column=1, sticky= "nesw")
         tk.Button(container, bg= self.colour_scheme["black"], text="♝", font=["arial",15], command= lambda:[self.store_move(start,[row,col],piece.piece,"b-"+move_type,captured), self.replace_piece(self.bbishop,container,start,[row,col])]).grid(row=1,column=0, sticky= "nesw")
         tk.Button(container, bg= self.colour_scheme["white"], text="♞", font=["arial",15], command= lambda:[self.store_move(start,[row,col],piece.piece,"n-"+move_type,captured), self.replace_piece(self.bknight,container,start,[row,col])]).grid(row=1,column=1, sticky= "nesw")
@@ -453,62 +468,42 @@ class chessboard(tk.Frame):
             self.full_move += 1
             if self.black_king.pos & self.white_can_take and p != 0:
                 self.reverse_move()  
-                
-        self.convert_for_bot()
-        self.get_captures()
- 
 
-
-    def convert_for_bot(self):
-        # array p n b k r q - based of piece number representation
-        black_pieces = np.array([xmpz(0) for i in range(6)])
-        white_pieces = np.array([xmpz(0) for i in range(6)])
-        
+    # returns an array of all the possible moves for the active side
+    # stored as a 12 bit number (start square, end square)
+    def possible_moves(self):
         moves = np.array([])
-        for i in self.piece_list:
-            if i.legal_moves and i.colour ==self.active_colour:
-                b= i.legal_moves.bit_scan1(0)
-                while b != None:
-                    moves = np.append(moves,[[i.pos,xmpz(1<<b)]])
-                    b = i.legal_moves.bit_scan1(b+1)
-            if i.piece >7 :
-                white_pieces[(i.piece%8) -1] |= i.pos # creates a 64 bit board for each type of piece
-            elif i.piece > 0:
-                black_pieces[i.piece - 1] |= i.pos
-                     
-        moves = moves.reshape(int(len(moves)/2),2)
-        
-        self.move_handler.hash = self.transposition.initial_hash([white_pieces,black_pieces])
-        
-        return black_pieces,white_pieces,moves
-
-    def get_captures(self):
-        black_pieces = np.array([xmpz(0) for i in range(6)])
-        white_pieces = np.array([xmpz(0) for i in range(6)])
-        
-        moves = np.array([])
-        for i in self.piece_list:
-            if i.legal_moves and i.colour ==self.active_colour:
-                captures = xmpz(i.legal_moves & self.black_positions if i.colour else self.white_positions)
-                b= captures.bit_scan1(0)
-                while b != None:
-                    moves = np.append(moves,[[i.pos,xmpz(1<<b)]])
-                    b = captures.bit_scan1(b+1)
-                    
-            if i.piece >7 :
-                white_pieces[(i.piece%8) -1] |= i.pos # creates a 64 bit board for each type of piece
-            elif i.piece > 0:
-                black_pieces[i.piece - 1] |= i.pos
-                     
-        moves = moves.reshape(int(len(moves)/2),2)
-        
-        self.move_handler.hash = self.transposition.initial_hash([white_pieces,black_pieces])
-        
-        return black_pieces,white_pieces,moves
-        
+        if self.active_colour:
+            pieces = self.white_pieces
+        else:
+            pieces = self.black_pieces
+        for i in pieces:
+            a = i.legal_moves.bit_scan1(0)
+            while a != None:
+                move = int(math.log2(i.pos))<<6 + a
+                moves = np.append(moves,move)
+                a = i.legal_moves.bit_scan1(a+1)
+        return moves
     
-        
-        # returns array of possilble moves, current board as array of bitboard ( for positional eval )
+    def possible_captures(self):
+        moves = np.array([])
+        # use a common variable to make the code shorter and more readable
+        if self.active_colour: 
+            pieces = self.white_pieces
+            enemy_pos = self.black_positions
+        else:
+            pieces = self.black_pieces
+            enemy_pos = self.white_positions
+            
+        for i in pieces:
+            captures = xmpz(i.legal_moves & enemy_pos) # eliminates all quiet moves
+            a = captures.bit_scan1(0)
+            # goes through all moves that are captures and adds them to a list
+            while a != None: 
+                move = int(math.log2(i.pos))<<6 + a
+                moves = np.append(moves,move)
+                a = captures.bit_scan1(a+1)
+        return moves
         
     def bot_make_move(self,start = 0,end = 0):
         if self.half_move % 2 == 0: 
@@ -529,10 +524,111 @@ class chessboard(tk.Frame):
         self.move_handler.start_row,self.move_handler.start_col,self.move_handler.start_pos =start//8,start%8,2**(start)
         self.move_handler.on_drop("",False,end)
     
-
     def make_random_moves(self,depth=1):
         while depth >0:
             self.bot_make_move()
             depth-=1
             #time.sleep(0.3)
             self.update()
+            
+    # returns the total value on the board (+ve favours white)
+    def get_material(self):
+        sum = 0
+        for i in self.white_pieces:
+            sum += i.value
+        for i in self.black_pieces:
+            sum -= i.value
+        return sum
+    
+    # returns a value for the overal mobility on the board
+    def get_mobility(self):
+        sum = 0
+        a = self.white_can_take.bit_scan1(0)
+        while a != None:
+            sum += 1
+            a = self.white_can_take.bit_scan1(a+1)
+        a = self.black_can_take.bit_scan1(0)
+        while a != None:
+            sum -= 1
+            a = self.black_can_take.bit_scan1(a+1)
+        return sum
+
+    # returns a value for the likelyhood of white to win from a given board
+    def evaluate(self):
+        
+        # checks if board has already been visited
+        board = self.transposition.find(self.hash)
+        if board:
+            return board
+        
+        # if not applies the eval function
+        # checks material difference
+        eval = self.get_material()
+        eval += self.get_mobility()
+        
+        if self.active_colour:
+            eval += 25
+        else:
+            eval -+ 25        
+        # then saves board and its eval to transposition
+        self.transposition.insert(self.hash,eval)
+        
+        return eval
+
+    # checks for stalemate/checkmate
+    def terminal(self):
+        if self.active_colour:
+            # checkmate 
+            if self.black_king & self.white_can_take:
+                return True
+            
+            #stalemate
+            can_move = False
+            for i in self.white_pieces:
+                if i.legal_moves:
+                    can_move = True
+                    break
+            return not can_move
+                
+        else:
+            if self.white_king & self.black_can_take:
+                return True
+            
+            can_move = False
+            for i in self.black_pieces:
+                if i.legal_moves:
+                    can_move = True
+                    break
+            return not can_move
+        
+    def was_capture(self):
+        return (self.recent_moves.peak() & 0b111100000000000000000000) > 0 # checks if a piece was captured
+
+    def checkmate():
+        #goes through all possible moves if cannot stop check ends game and displays a message to tell the user.
+        pass
+
+
+    # def convert_for_bot(self):
+    #     # array p n b k r q - based of piece number representation
+    #     black_pieces = np.array([xmpz(0) for i in range(6)])
+    #     white_pieces = np.array([xmpz(0) for i in range(6)])
+        
+    #     moves = np.array([])
+    #     for i in self.piece_list:
+    #         if i.legal_moves and i.colour ==self.active_colour:
+    #             b= i.legal_moves.bit_scan1(0)
+    #             while b != None:
+    #                 moves = np.append(moves,[[i.pos,xmpz(1<<b)]])
+    #                 b = i.legal_moves.bit_scan1(b+1)
+    #         if i.piece >7 :
+    #             white_pieces[(i.piece%8) -1] |= i.pos # creates a 64 bit board for each type of piece
+    #         elif i.piece > 0:
+    #             black_pieces[i.piece - 1] |= i.pos
+                     
+    #     moves = moves.reshape(int(len(moves)/2),2)
+        
+    #     self.move_handler.hash = self.transposition.initial_hash([white_pieces,black_pieces])
+        
+    #     board = [white_pieces,black_pieces,self.available_castle,self.en_passant,self.active_colour]
+    #     return board,moves

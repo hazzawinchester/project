@@ -5,50 +5,23 @@ import time
 
 class Alpha_Beta:
     def __init__(self,master):
-        self.master = master        
-        
-    def evaluate(self, board, hash):
-        new_hash = self.master.transposition
-        # checks if board has already been visited
-        # if not applies {eval function}
-        # then saves board and its eval to transposition
-        pass
-
-    def terminal(self, board):
-        return (board.white_king & board.black_can_take) | (board.black_king & board.white_can_take)
-        
-
-    def possible_moves(self, board):
-        #returns all possible moves
-        pass
-
-    def get_state(self, board,move):
-        #returns the state of the board after a move
-        #returns position of pieces, moves, castling
-        pass
-
-    def is_capture(self, move):
-        #uses the notation of the move to return true if it was a capture to extend the search
-        pass
-
-    def is_king_safe(self,board):
-        # checks if after the move the king can be attacked by any pieces
-        # returns true if the king cannot be attacked
-        pass
+        self.master = master
     
     def search_all_captures(self,alpha, beta):
-        pass
-    
-    def alpha_beta(self,board, depth, alpha, beta,was_capture, whites_turn):
-        pieces,hash = board
-        
-        if depth >0 or self.terminal(board) and not was_capture:
-            return self.evaluate(board,hash) 
-        
-        if whites_turn: 
+        if self.thinking_time < (time.time()-self.start_time):
+            return self.master.evalute()
+        if self.master.terminal():
+            return self.master.evaluate() 
+        elif self.master.was_capture():
+            self.search_all_captures(alpha,beta) 
+                        
+        if self.master.active_colour: 
             maxEva= -float("infinity")        
-            for move in self.possible_moves(board):
-                eva= self.alpha_beta(self.get_state(board,move), depth-1, alpha, beta, self.is_capture(move), False)  
+            for move in self.master.possible_captures():
+                self.master.make_move(move)
+                eva= self.search_all_captures(alpha, beta)
+                self.master.unmake_move() 
+                
                 maxEva = max(maxEva, eval)
                 alpha = max(alpha, eval)
                 if beta <= alpha:
@@ -57,54 +30,103 @@ class Alpha_Beta:
         
         else:
             minEva= float("infinity")
-            for move in self.possible_moves(board):
-                eva= self.alpha_beta(self.get_state(board,move), depth-1, alpha, beta, self.is_capture(move) , True)  
+            for move in self.master.possible_captures():
+                self.master.make_move(move)
+                eva= self.search_all_captures(alpha, beta)
+                self.master.unmake_move()
+                
+                minEva= min(minEva, eva)   
+                beta= min(beta, eva)  
+                if beta<=alpha:
+                    break          
+            return minEva
+    
+    # recursively makes moves until the maximum depth is reached or a terminal state is reached
+    # the retuturns the evaluation of that position
+    def alpha_beta(self, depth, alpha, beta):
+        if self.thinking_time < (time.time()-self.start_time):
+            return self.master.evaluate() 
+        
+        if self.master.terminal(): # ckecmate/stalemate
+                return self.master.evaluate() 
+        elif depth == 0 :
+            if self.master.was_capture(): # Quiescence Search to avoid horizon affect
+               self.search_all_captures() 
+            else:
+                return self.master.evaluate()
+        
+        if self.master.active_colour: 
+            maxEva= -float("infinity")        
+            for move in self.master.possible_moves():
+                self.master.make_move(move)
+                eva= self.alpha_beta(depth-1,alpha, beta)
+                self.master.unmake_move() 
+                
+                maxEva = max(maxEva, eval)
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break
+            return maxEva
+        
+        else:
+            minEva= float("infinity")
+            for move in self.master.possible_moves():
+                self.master.make_move(move)
+                eva= self.alpha_beta(depth-1,alpha, beta)
+                self.master.unmake_move()
+                
                 minEva= min(minEva, eva)   
                 beta= min(beta, eva)  
                 if beta<=alpha:
                     break          
             return minEva 
         
-    def get_best_move(self, board,thinking_time,hash):
+    def get_best_move(self,thinking_time):
         # uses the best move from the previous search to start the next search depth
         # depth increases with each iteration until time has been exceeded
-        
-        best_move = None
-        alpha = float('-inf')
-        beta = float('inf')
-
-        moves = np.array([])
-        
-        depth =1
-        start = time.time()
-        while time_elapsed <= thinking_time:
-            for move in board.legal_moves:
-                if board.active_colour == 1:
-
-                    eva = self.alpha_beta(self.get_state(board,move,hash), depth-1, alpha, beta, False)  
-
+        depth = 1
+        self.thinking_time,self.start_time = thinking_time,time.time()
+        while (time.time()-self.start_time) < thinking_time:
+            best_move,alpha,beta = self.check_old_best()
+            alpha,beta,best_move = float('-inf'),float('inf'), None      
+            for move in self.master.possible_moves():
+                if move == old_best_move:
+                    continue
+                self.master.make_move(move)
+                eva= self.alpha_beta(depth-1,alpha, beta) # calls recursive search
+                self.master.unmake_move()  
+                
+                if self.master.active_colour:
                     if eva > max_eval:
                         max_eval = eval
                         best_move = move
-
                     alpha = max(alpha, eva)
-                    
-                    move = np.append(move,np.array([move,eva]))
                 else:
-                    eva = self.alpha_beta(self.get_state(board,move,hash), depth-1, alpha, beta, True)  
-
                     if eva < min_eval:
                         min_eval = eval
                         best_move = move
+                    beta = min(beta, eva)  
+            if (time.time()-self.start_time) < thinking_time:
+                break                                     
+            depth += 1 # iterative deepening 
+            old_best_move = best_move # makes sure to return fully completed search
+        return old_best_move
+    
+    def check_old_best(self,move,depth,alpha,beta):
+        self.master.make_move(move)
+        eva= self.alpha_beta(depth-1,alpha, beta) # calls recursive search
+        self.master.unmake_move()  
+        
+        if self.master.active_colour:
+            if eva > max_eval:
+                max_eval = eval
+                best_move = move
+            alpha = max(alpha, eva)
+        else:
+            if eva < min_eval:
+                min_eval = eval
+                best_move = move
+            beta = min(beta, eva)
 
-                    beta = min(beta, eva)
-                    
-                    move = np.append(move,np.array([move,eva]))
-
-                time_elapsed = time.time() - start
-                
-                    
-            depth += 1 # iterative deepening is more efficient than going staright to the depth as more branches are pruned
-
-        return best_move
+        return best_move,alpha,beta  
 

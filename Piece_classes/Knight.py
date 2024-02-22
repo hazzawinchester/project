@@ -5,7 +5,9 @@ class Knight(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)
 
+    # generates all possible moves for a piece
     def update_legal_moves(self):
+        #clearing the possible moves
         self.legal_moves = xmpz(0)
         self.ghost_moves = xmpz(0)
         square = int(math.log2(self.pos))
@@ -20,6 +22,7 @@ class Knight(parent.Piece):
         right1 = col+1 
         right2 = col+2
 
+        # checking all squares aronud the piece as long as they are within the board
         if col >=1:
             if row >=2:
                 self.check_square((up2<<3)+left1)

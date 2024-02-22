@@ -32,9 +32,9 @@ class Pawn(parent.Piece):
 
 
     def check_forward(self,square1,square2):
-        if ( 2**(square1) & (self.master.black_positions | self.master.white_positions))==0:
+        if ( 2**(square1) & (self.enemy | self.friend))==0:
             blocked = self.check_square(square1)
-            if (not self.has_moved) and (not blocked) and (square2>0 and len(bin(square2))<=66) and ( 1<<(square2) & (self.master.black_positions | self.master.white_positions))==0: #and (board[row2,col].colour == None):
+            if (not self.has_moved) and (not blocked) and (square2>0 and len(bin(square2))<=66) and ( 1<<(square2) & (self.enemy | self.friend))==0: #and (board[row2,col].colour == None):
                 self.legal_moves[square2] =1
                 self.ghost_moves[square2] =1
             elif not self.has_moved:

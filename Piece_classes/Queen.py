@@ -1,5 +1,4 @@
 from Piece_classes import pieces as parent
-import numpy as np
 from gmpy2 import xmpz
 import time
 import math
@@ -8,14 +7,17 @@ class Queen(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)
 
-    def update_legal_moves(self):  #0.26763200759887695, 2.7*10^-4 per move max  - imporved = 6.5*10^-6
-        self.legal_moves = xmpz(0) # np.empty((1,2),"int")
+    def update_legal_moves(self):  # 2.7*10^-4 per move max -> imporved = 6.5*10^-6 -> imporve 8.2 *10^-8
+        self.legal_moves = xmpz(0) 
         self.ghost_moves = xmpz(0)
 
         square = int(math.log2(self.pos))
         row,col = square//8,square%8 
+        
+        #sets variables for ray tracing search
         left,right,up,down,left_up,left_down,right_up,right_down,a = False,False,False,False,False,False,False,False,1
-
+        
+        # a combination of both the bishop and rook moves
         while left==False or right==False or up==False or down==False or left_up==False or left_down==False or right_up==False or right_down==False:
             this_left = col-a
             this_right = col+a
@@ -63,6 +65,8 @@ class Queen(parent.Piece):
                 up = self.check_square((this_up<<3)+col,up)
             else:
                 up = True
+                
+            # incriments to search the next squares around the piece
             a+=1
 
     

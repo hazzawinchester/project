@@ -6,12 +6,15 @@ class Bishop(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)
     
+    # generates all possible moves for a piece
     def update_legal_moves(self):
         self.legal_moves = xmpz(0)
         self.ghost_moves = xmpz(0)
         
         square = int(math.log2(self.pos))
         row,col = square//8,square%8
+        
+        #setting variables that controll how far the ray tracer searches in each dirrection
         left_up,left_down,right_up,right_down,a = False,False,False,False,1
 
         while left_up==False or left_down==False or right_up==False or right_down==False:
@@ -46,6 +49,8 @@ class Bishop(parent.Piece):
             else:
                 right_up=True
                 right_down=True
+                
+            # incriments to search sqaures 1 move away from the piece
             a+=1
 
 

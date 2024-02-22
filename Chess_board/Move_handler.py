@@ -77,7 +77,6 @@ class Move_handler:
         move[(row<<3)+col] = 1
         promo = False
 
-        #if  self.master.piece_type != "hidden":
         # finds all index where a bit is 1 and unhighlights them
         b= piece.legal_moves.bit_scan1(0)
         while b != None:
@@ -111,6 +110,8 @@ class Move_handler:
                                 self.master.available_castle[0] = 0
                             else:
                                 self.master.available_castle[1] = 0
+
+                
             else:
                 move_type = "quiet"
                 captured_piece = 0
@@ -138,8 +139,6 @@ class Move_handler:
                     self.master.board[r,c] = p.Piece(self.master,piece=0,row=self.start_row,col=self.start_col,piece_type='')
                     self.master.piece_board[r,c] = 0
                     self.update_passanted(2**(((r)<<3)+c))
-                    self.master.old_passant = self.master.en_passant
-                    self.master.en_passant = xmpz(0)
                     
                 elif not piece.has_moved and (row in [self.start_row-2,self.start_row+2]):
                     self.master.old_passant = self.master.en_passant
@@ -202,15 +201,17 @@ class Move_handler:
                     self.master.active_colour = 0
                     if self.master.white_king.pos & self.master.black_can_take:
                         self.master.reverse_move()
+                    elif self.master.black_king.pos & self.master.white_can_take:
+                        self.master.checkmate()
                 else:
                     self.master.active_colour = 1
                     self.master.full_move += 1
                     if self.master.black_king.pos & self.master.white_can_take:
-                        self.master.reverse_move()        
-            #self.master.transposition.initial_hash(self.hash)   
-            self.hash = self.master.transposition.hash(self.master.move,self.hash) 
-            #print(self.hash)
-                
+                        self.master.reverse_move()   
+                    elif self.master.white_king.pos & self.master.black_can_take:
+                        self.master.checkmate()
+
+            
         else:
             piece.grid(row=self.start_row,column=self.start_col)
             if self.master.piece_type in ["ascii","secret"]:
@@ -259,8 +260,8 @@ class Move_handler:
         self.master.update_can_take(1)
         self.master.update_can_take(0)
         
-        i.master.black_king.update_legal_moves()
-        i.master.white_king.update_legal_moves()
+        # i.master.black_king.update_legal_moves()
+        # i.master.white_king.update_legal_moves()
     
     def update_passanted(self,move):
         for i in self.master.piece_list:

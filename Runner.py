@@ -1,4 +1,4 @@
-from GUI_pages import master,home,Rules,play,settings,variants    
+from GUI_pages import master,home,Rules,play,settings    
 
 # runner that collects all GUI elements to assembles them into the interface
 window = master.Window()
@@ -10,12 +10,10 @@ chess = play.Chess_game(window,"ascii")
 window.add_frame(home.Home_page(window),"Home")
 window.add_frame(Rules.Rules(window),"Rules")
 window.add_frame(chess,"Play")
-window.add_frame(variants.Variants_page(window),"Variants")
 window.add_frame(settings.Settings_page(window),"Settings")
 
-#window.add_frame(sign_in.Sign_in_page(window),"Sign in")
-
 window.show_frame("Play")
+chess.create_board()
 
 window.mainloop() 
 

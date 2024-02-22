@@ -1,5 +1,4 @@
 from Piece_classes import pieces as parent
-import numpy as np
 import time
 from gmpy2 import xmpz
 import math
@@ -8,7 +7,7 @@ class Rook(parent.Piece):
     def __init__(self,master,piece,row,col,piece_type):
         super().__init__(master,piece,row,col,piece_type)
 
-    def update_legal_moves(self):  # 2.6*10^-6 per move max
+    def update_legal_moves(self):
         self.legal_moves = xmpz(0)
         self.ghost_moves = xmpz(0)
         square = int(math.log2(self.pos))
@@ -39,22 +38,5 @@ class Rook(parent.Piece):
                     down = self.check_square(((row+a)<<3)+col,down)
                 else:
                     down = True
-            a+=1        
-        # if self.has_moved == 1:
-        #     self.master.available_castle[self.side] = 0
-
-            
-            
-            
-            
-            
-            
-"""        
-    def update_ghost_moves(self):
-        self.ghost_moves = [[100,100]] 
-        row,col = self.pos
-        self.ghost_moves=  np.append(self.ghost_moves,[(a,col) for a in range(8)], axis=0)
-        self.ghost_moves=  np.append(self.ghost_moves,[(row,a) for a in range(8)], axis=0)
-        """
-
-
+            #increments to search nex squares around the piece
+            a+=1

@@ -1,3 +1,10 @@
+board [ white_pos, black_pos, castling, active, ep]
+
+
+
+
+
+
 move encoding 24 bit word  -> 4 bits (captured piece) - 4 bits (moved piece)  6 bits (start square) - 6 bits (end square), 4 bits (move type)
 
 pieces

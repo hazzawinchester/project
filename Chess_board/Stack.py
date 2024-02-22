@@ -1,17 +1,16 @@
 import numpy as np
-
 class Stack:
     def __init__(self):
         self.data = np.array([],int)
 
     def __str__(self):
-        temp = []
-        temp = self.data
-        return f"{temp}"
-
+        return f"{self.data}"
+    
+    # adds a new element to the top of the stack
     def push(self,item):
         self.data = np.append(self.data,item)
-        
+    
+    # removes the to value from the stack and returns it
     def pop(self):
         if not self.is_empty():
             out = self.data[-1]
@@ -19,15 +18,17 @@ class Stack:
             return out
         return False
     
+    # returns the top value from the stack without removing it
     def peak(self):
-        if self.length() >1:
+        if not self.is_empty():
             return self.data[-1]
         return 0
         
-        
+    #checks if the stack is empty -> cannot pop any data
     def is_empty(self):
         return( len(self.data) == 0)
 
+    #returns the number of items in the stack
     def length(self):
         return len(self.data)
     
